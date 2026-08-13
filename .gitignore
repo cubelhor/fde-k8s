@@ -1,0 +1,9 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+.DS_Store
+
+# Large cloned Hugo source (if tracking code & pipelines only)
+# website/

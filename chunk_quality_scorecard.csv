@@ -1,0 +1,124 @@
+test_id,category,question,target_chunk,retrieved_rank,hit_at_1,hit_at_3,hit_at_5,reciprocal_rank,top_chunk_id,top_breadcrumb,top_content,all_retrieved,groundedness_score,faithfulness,judge_explanation
+TC-01,Core Concept / Rule,"Do admission controllers intercept read requests like get, watch, or list?",admission_ctrl_chunk_002,2,0,1,1,0.5,admission_ctrl_chunk_001,Admission Control in Kubernetes,"### [Admission Control in Kubernetes]
+
+This page provides an overview of _admission controllers_.
+
+An admission controller is a piece of code that intercepts requests to the
+Kubernetes API server prior to persistence of the resource, but after the request
+is authenticated and authorized.
+
+Several important features of Kubernetes require an admission controller to be enabled in order
+to properly support the feature.  As a result, a Kubernetes API server that is not properly
+configured with the right set of admission controllers is an incomplete server that will not
+support all the features you expect.","['admission_ctrl_chunk_001', 'admission_ctrl_chunk_002', 'admission_ctrl_chunk_003', 'admission_ctrl_chunk_051', 'admission_ctrl_chunk_052']",0.2,LOW,"The chunk defines when admission controllers intercept requests ('prior to persistence of the resource') which implies they don't handle read requests, but it does not explicitly state that read requests are bypassed or cannot be blocked, nor does it mention 'get', 'watch', or 'list'."
+TC-02,Phase Execution Order,What are the two phases of admission control and in what sequence do they execute?,admission_ctrl_chunk_004,1,1,1,1,1.0,admission_ctrl_chunk_004,Admission Control in Kubernetes > What are they? > Admission control phases,"### [Admission Control in Kubernetes > What are they? > Admission control phases]
+
+The admission control process proceeds in two phases. In the first phase,
+mutating admission controllers are run. In the second phase, validating
+admission controllers are run. Note again that some of the controllers are
+both.
+
+If any of the controllers in either phase reject the request, the entire
+request is rejected immediately and an error is returned to the end-user.
+
+Finally, in addition to sometimes mutating the object in question, admission
+controllers may sometimes have side effects, that is, mutate related
+resources as part of request processing. Incrementing quota usage is the
+canonical example of why this is necessary. Any such side-effect needs a
+corresponding reclamation or reconciliation process, as a given admission
+controller does not know for sure that a given request will pass all of the
+other admission controllers.
+
+The ordering of these calls can be seen below.
+
+![Diagram: Sequence diagram for kube-apiserver handling requests during the admission phase showing mutation webhooks, followed by validatingadmissionpolicies and finally validating webhooks. It shows that the continue until the first rejection, or being accepted by all of them. It also shows that mutations by mutating webhooks cause all previously called webhooks to be called again.]","['admission_ctrl_chunk_004', 'admission_ctrl_chunk_001']",1.0,HIGH,"The chunk explicitly states there are two phases of admission control, mutating and validating, and their execution sequence."
+TC-03,Extension Mechanisms,What are the three special admission controllers used for extension points without recompiling?,admission_ctrl_chunk_003,1,1,1,1,1.0,admission_ctrl_chunk_003,Admission Control in Kubernetes > What are they? > Admission control extension points,"### [Admission Control in Kubernetes > What are they? > Admission control extension points]
+
+Within the full [list](#what-does-each-admission-controller-do), there are three
+special controllers:
+[MutatingAdmissionWebhook](#mutatingadmissionwebhook),
+[ValidatingAdmissionWebhook](#validatingadmissionwebhook), and
+[ValidatingAdmissionPolicy](#validatingadmissionpolicy).
+The two webhook controllers execute the mutating and validating (respectively)
+[admission control webhooks](/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks)
+which are configured in the API. ValidatingAdmissionPolicy provides a way to embed
+declarative validation code within the API, without relying on any external HTTP
+callouts.
+
+You can use these three admission controllers to customize cluster behavior at
+admission time.","['admission_ctrl_chunk_003', 'admission_ctrl_chunk_020', 'admission_ctrl_chunk_053', 'admission_ctrl_chunk_009', 'admission_ctrl_chunk_002']",1.0,HIGH,"The chunk explicitly lists the three special admission controllers (MutatingAdmissionWebhook, ValidatingAdmissionWebhook, ValidatingAdmissionPolicy) and explains how they function as extension points configured in the API or without external callouts, fulfilling the 'without recompiling' criterion."
+TC-04,Controller Deep-Dive,What does the AlwaysPullImages admission controller do to new pods?,admission_ctrl_chunk_010,1,1,1,1,1.0,admission_ctrl_chunk_011,Admission Control in Kubernetes > What does each admission controller do? > AlwaysPullImages,"### [Admission Control in Kubernetes > What does each admission controller do? > AlwaysPullImages]
+
+**Type**: Mutating and Validating.
+
+This admission controller modifies every new Pod to force the image pull policy to `Always`. This is useful in a
+multitenant cluster so that users can be assured that their private images can only be used by those
+who have the credentials to pull them. Without this admission controller, once an image has been pulled to a
+node, any pod from any user can use it by knowing the image's name (assuming the Pod is
+scheduled onto the right node), without any authorization check against the image. When this admission controller
+is enabled, images are always pulled prior to starting containers, which means valid credentials are
+required.","['admission_ctrl_chunk_011', 'admission_ctrl_chunk_009', 'admission_ctrl_chunk_042', 'admission_ctrl_chunk_024', 'admission_ctrl_chunk_023']",1.0,HIGH,"The chunk clearly states that the controller modifies new pods to force the image pull policy to 'Always', fulfilling all required facts."
+TC-05,Configuration & Manifests,How do you configure EventRateLimit limits for namespaces and users?,admission_ctrl_chunk_020,1,1,1,1,1.0,admission_ctrl_chunk_019,Admission Control in Kubernetes > What does each admission controller do? > EventRateLimit,"### [Admission Control in Kubernetes > What does each admission controller do? > EventRateLimit]
+
+[Feature State: alpha]
+
+**Type**: Validating.
+
+This admission controller mitigates the problem where the API server gets flooded by
+requests to store new Events. The cluster admin can specify event rate limits by:
+
+* Enabling the `EventRateLimit` admission controller;
+* Referencing an `EventRateLimit` configuration file from the file provided to the API
+  server's command line flag `--admission-control-config-file`:
+
+```yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+  - name: EventRateLimit
+    path: eventconfig.yaml
+...
+```
+
+There are four types of limits that can be specified in the configuration:
+
+ * `Server`: All Event requests (creation or modifications) received by the API server share a single bucket.
+ * `Namespace`: Each namespace has a dedicated bucket.
+ * `User`: Each user is allocated a bucket.
+ * `SourceAndObject`: A bucket is assigned by each combination of source and
+   involved object of the event.
+
+Below is a sample `eventconfig.yaml` for such a configuration:
+
+```yaml
+apiVersion: eventratelimit.admission.k8s.io/v1alpha1
+kind: Configuration
+limits:
+  - type: Namespace
+    qps: 50
+    burst: 100
+    cacheSize: 2000
+  - type: User
+    qps: 10
+    burst: 50
+```
+
+See the [EventRateLimit Config API (v1alpha1)](/docs/reference/config-api/apiserver-eventratelimit.v1alpha1/)
+for more details.
+
+This admission controller is disabled by default.",['admission_ctrl_chunk_019'],1.0,HIGH,"The chunk explicitly details how to configure EventRateLimit for namespaces and users, including the use of `qps` and `burst` parameters within the `eventconfig.yaml`."
+TC-06,Security Standards,Which admission controller replaced PodSecurityPolicy in Kubernetes?,admission_ctrl_chunk_038,1,1,1,1,1.0,admission_ctrl_chunk_042,Admission Control in Kubernetes > What does each admission controller do? > PodSecurity,"### [Admission Control in Kubernetes > What does each admission controller do? > PodSecurity]
+
+[Feature State: stable]
+
+**Type**: Validating.
+
+The PodSecurity admission controller checks new Pods before they are
+admitted, determines if it should be admitted based on the requested security context and the restrictions on permitted
+[Pod Security Standards](/docs/concepts/security/pod-security-standards/)
+for the namespace that the Pod would be in.
+
+See the [Pod Security Admission](/docs/concepts/security/pod-security-admission/)
+documentation for more information.
+
+PodSecurity replaced an older admission controller named PodSecurityPolicy.","['admission_ctrl_chunk_042', 'admission_ctrl_chunk_009', 'admission_ctrl_chunk_008', 'admission_ctrl_chunk_007', 'admission_ctrl_chunk_038']",1.0,HIGH,The chunk explicitly states that PodSecurity replaced PodSecurityPolicy.

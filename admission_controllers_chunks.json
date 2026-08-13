@@ -1,0 +1,849 @@
+[
+  {
+    "chunk_id": "admission_ctrl_chunk_001",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes",
+    "content": "### [Admission Control in Kubernetes]\n\nThis page provides an overview of _admission controllers_.\n\nAn admission controller is a piece of code that intercepts requests to the\nKubernetes API server prior to persistence of the resource, but after the request\nis authenticated and authorized.\n\nSeveral important features of Kubernetes require an admission controller to be enabled in order\nto properly support the feature.  As a result, a Kubernetes API server that is not properly\nconfigured with the right set of admission controllers is an incomplete server that will not\nsupport all the features you expect.",
+    "token_estimate": 151,
+    "char_count": 607,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_002",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What are they?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What are they?",
+    "content": "### [Admission Control in Kubernetes > What are they?]\n\nAdmission controllers are code within the Kubernetes\nAPI server that check the\ndata arriving in a request to modify a resource.\n\nAdmission controllers apply to requests that create, delete, or modify objects.\nAdmission controllers can also block custom verbs, such as a request to connect to a\npod via an API server proxy. Admission controllers do _not_ (and cannot) block requests\nto read (**get**, **watch** or **list**) objects, because reads bypass the admission\ncontrol layer.\n\nAdmission control mechanisms may be _validating_, _mutating_, or both. Mutating\ncontrollers may modify the data for the resource being modified; validating controllers may not.\n\nThe admission controllers in Kubernetes v1.32 consist of the\n[list](#what-does-each-admission-controller-do) below, are compiled into the\n`kube-apiserver` binary, and may only be configured by the cluster\nadministrator.",
+    "token_estimate": 234,
+    "char_count": 936,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_003",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What are they?",
+      "Admission control extension points"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What are they? > Admission control extension points",
+    "content": "### [Admission Control in Kubernetes > What are they? > Admission control extension points]\n\nWithin the full [list](#what-does-each-admission-controller-do), there are three\nspecial controllers:\n[MutatingAdmissionWebhook](#mutatingadmissionwebhook),\n[ValidatingAdmissionWebhook](#validatingadmissionwebhook), and\n[ValidatingAdmissionPolicy](#validatingadmissionpolicy).\nThe two webhook controllers execute the mutating and validating (respectively)\n[admission control webhooks](/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks)\nwhich are configured in the API. ValidatingAdmissionPolicy provides a way to embed\ndeclarative validation code within the API, without relying on any external HTTP\ncallouts.\n\nYou can use these three admission controllers to customize cluster behavior at\nadmission time.",
+    "token_estimate": 209,
+    "char_count": 836,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_004",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What are they?",
+      "Admission control phases"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What are they? > Admission control phases",
+    "content": "### [Admission Control in Kubernetes > What are they? > Admission control phases]\n\nThe admission control process proceeds in two phases. In the first phase,\nmutating admission controllers are run. In the second phase, validating\nadmission controllers are run. Note again that some of the controllers are\nboth.\n\nIf any of the controllers in either phase reject the request, the entire\nrequest is rejected immediately and an error is returned to the end-user.\n\nFinally, in addition to sometimes mutating the object in question, admission\ncontrollers may sometimes have side effects, that is, mutate related\nresources as part of request processing. Incrementing quota usage is the\ncanonical example of why this is necessary. Any such side-effect needs a\ncorresponding reclamation or reconciliation process, as a given admission\ncontroller does not know for sure that a given request will pass all of the\nother admission controllers.\n\nThe ordering of these calls can be seen below.\n\n![Diagram: Sequence diagram for kube-apiserver handling requests during the admission phase showing mutation webhooks, followed by validatingadmissionpolicies and finally validating webhooks. It shows that the continue until the first rejection, or being accepted by all of them. It also shows that mutations by mutating webhooks cause all previously called webhooks to be called again.]",
+    "token_estimate": 341,
+    "char_count": 1366,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_005",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "Why do I need them?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > Why do I need them?",
+    "content": "### [Admission Control in Kubernetes > Why do I need them?]\n\nSeveral important features of Kubernetes require an admission controller to be enabled in order\nto properly support the feature. As a result, a Kubernetes API server that is not properly\nconfigured with the right set of admission controllers is an incomplete server and will not\nsupport all the features you expect.",
+    "token_estimate": 94,
+    "char_count": 376,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_006",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "How do I turn on an admission controller?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > How do I turn on an admission controller?",
+    "content": "### [Admission Control in Kubernetes > How do I turn on an admission controller?]\n\nThe Kubernetes API server flag `enable-admission-plugins` takes a comma-delimited list of admission control plugins to invoke prior to modifying objects in the cluster.\nFor example, the following command line enables the `NamespaceLifecycle` and the `LimitRanger`\nadmission control plugins:\n\n```shell\nkube-apiserver --enable-admission-plugins=NamespaceLifecycle,LimitRanger ...\n```\n\n\n> **Note:** \nDepending on the way your Kubernetes cluster is deployed and how the API server is\nstarted, you may need to apply the settings in different ways. For example, you may\nhave to modify the systemd unit file if the API server is deployed as a systemd\nservice, you may modify the manifest file for the API server if Kubernetes is deployed\nin a self-hosted way.",
+    "token_estimate": 208,
+    "char_count": 835,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_007",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "How do I turn off an admission controller?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > How do I turn off an admission controller?",
+    "content": "### [Admission Control in Kubernetes > How do I turn off an admission controller?]\n\nThe Kubernetes API server flag `disable-admission-plugins` takes a comma-delimited list of admission control plugins to be disabled, even if they are in the list of plugins enabled by default.\n\n```shell\nkube-apiserver --disable-admission-plugins=PodNodeSelector,AlwaysDeny ...\n```",
+    "token_estimate": 91,
+    "char_count": 364,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_008",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "Which plugins are enabled by default?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > Which plugins are enabled by default?",
+    "content": "### [Admission Control in Kubernetes > Which plugins are enabled by default?]\n\nTo see which admission plugins are enabled:\n\n```shell\nkube-apiserver -h | grep enable-admission-plugins\n```\n\nIn Kubernetes v1.32, the default ones are:\n\n```shell\nCertificateApproval, CertificateSigning, CertificateSubjectRestriction, DefaultIngressClass, DefaultStorageClass, DefaultTolerationSeconds, LimitRanger, MutatingAdmissionWebhook, NamespaceLifecycle, PersistentVolumeClaimResize, PodSecurity, Priority, ResourceQuota, RuntimeClass, ServiceAccount, StorageObjectInUseProtection, TaintNodesByCondition, ValidatingAdmissionPolicy, ValidatingAdmissionWebhook\n```",
+    "token_estimate": 161,
+    "char_count": 647,
+    "has_code_block": true,
+    "has_table": true
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_009",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "AlwaysAdmit"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > AlwaysAdmit",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > AlwaysAdmit]\n\n[Feature State: deprecated]\n\n**Type**: Validating.\n\nThis admission controller allows all pods into the cluster. It is **deprecated** because\nits behavior is the same as if there were no admission controller at all.",
+    "token_estimate": 77,
+    "char_count": 309,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_010",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "AlwaysDeny"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > AlwaysDeny",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > AlwaysDeny]\n\n[Feature State: deprecated]\n\n**Type**: Validating.\n\nRejects all requests. AlwaysDeny is **deprecated** as it has no real meaning.",
+    "token_estimate": 55,
+    "char_count": 223,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_011",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "AlwaysPullImages"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > AlwaysPullImages",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > AlwaysPullImages]\n\n**Type**: Mutating and Validating.\n\nThis admission controller modifies every new Pod to force the image pull policy to `Always`. This is useful in a\nmultitenant cluster so that users can be assured that their private images can only be used by those\nwho have the credentials to pull them. Without this admission controller, once an image has been pulled to a\nnode, any pod from any user can use it by knowing the image's name (assuming the Pod is\nscheduled onto the right node), without any authorization check against the image. When this admission controller\nis enabled, images are always pulled prior to starting containers, which means valid credentials are\nrequired.",
+    "token_estimate": 192,
+    "char_count": 771,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_012",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "CertificateApproval"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > CertificateApproval",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > CertificateApproval]\n\n**Type**: Validating.\n\nThis admission controller observes requests to approve CertificateSigningRequest resources and performs additional\nauthorization checks to ensure the approving user has permission to **approve** certificate requests with the\n`spec.signerName` requested on the CertificateSigningRequest resource.\n\nSee [Certificate Signing Requests](/docs/reference/access-authn-authz/certificate-signing-requests/) for more\ninformation on the permissions required to perform different actions on CertificateSigningRequest resources.",
+    "token_estimate": 160,
+    "char_count": 641,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_013",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "CertificateSigning"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > CertificateSigning",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > CertificateSigning]\n\n**Type**: Validating.\n\nThis admission controller observes updates to the `status.certificate` field of CertificateSigningRequest resources\nand performs an additional authorization checks to ensure the signing user has permission to **sign** certificate\nrequests with the `spec.signerName` requested on the CertificateSigningRequest resource.\n\nSee [Certificate Signing Requests](/docs/reference/access-authn-authz/certificate-signing-requests/) for more\ninformation on the permissions required to perform different actions on CertificateSigningRequest resources.",
+    "token_estimate": 165,
+    "char_count": 663,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_014",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "CertificateSubjectRestriction"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > CertificateSubjectRestriction",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > CertificateSubjectRestriction]\n\n**Type**: Validating.\n\nThis admission controller observes creation of CertificateSigningRequest resources that have a `spec.signerName`\nof `kubernetes.io/kube-apiserver-client`. It rejects any request that specifies a 'group' (or 'organization attribute')\nof `system:masters`.",
+    "token_estimate": 97,
+    "char_count": 389,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_015",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "DefaultIngressClass"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > DefaultIngressClass",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > DefaultIngressClass]\n\n**Type**: Mutating.\n\nThis admission controller observes creation of `Ingress` objects that do not request any specific\ningress class and automatically adds a default ingress class to them.  This way, users that do not\nrequest any special ingress class do not need to care about them at all and they will get the\ndefault one.\n\nThis admission controller does not do anything when no default ingress class is configured. When more than one ingress\nclass is marked as default, it rejects any creation of `Ingress` with an error and an administrator\nmust revisit their `IngressClass` objects and mark only one as default (with the annotation\n\"ingressclass.kubernetes.io/is-default-class\").  This admission controller ignores any `Ingress`\nupdates; it acts only on creation.\n\nSee the [Ingress](/docs/concepts/services-networking/ingress/) documentation for more about ingress\nclasses and how to mark one as default.",
+    "token_estimate": 253,
+    "char_count": 1012,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_016",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "DefaultStorageClass"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > DefaultStorageClass",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > DefaultStorageClass]\n\n**Type**: Mutating.\n\nThis admission controller observes creation of `PersistentVolumeClaim` objects that do not request any specific storage class\nand automatically adds a default storage class to them.\nThis way, users that do not request any special storage class do not need to care about them at all and they\nwill get the default one.\n\nThis admission controller does nothing when no default `StorageClass` exists. When more than one storage\nclass is marked as default, and you then create a `PersistentVolumeClaim` with no `storageClassName` set, \nKubernetes uses the most recently created default `StorageClass`.\nWhen a `PersistentVolumeClaim` is created with a specified `volumeName`, it remains in a pending state \nif the static volume's `storageClassName` does not match the `storageClassName` on the `PersistentVolumeClaim`\nafter any default StorageClass is applied to it.\nThis admission controller ignores any `PersistentVolumeClaim` updates; it acts only on creation.\n\nSee [persistent volume](/docs/concepts/storage/persistent-volumes/) documentation about persistent volume claims and\nstorage classes and how to mark a storage class as default.",
+    "token_estimate": 314,
+    "char_count": 1258,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_017",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "DefaultTolerationSeconds"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > DefaultTolerationSeconds",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > DefaultTolerationSeconds]\n\n**Type**: Mutating.\n\nThis admission controller sets the default forgiveness toleration for pods to tolerate\nthe taints `notready:NoExecute` and `unreachable:NoExecute` based on the k8s-apiserver input parameters\n`default-not-ready-toleration-seconds` and `default-unreachable-toleration-seconds` if the pods don't already\nhave toleration for taints `node.kubernetes.io/not-ready:NoExecute` or\n`node.kubernetes.io/unreachable:NoExecute`.\nThe default value for `default-not-ready-toleration-seconds` and `default-unreachable-toleration-seconds` is 5 minutes.",
+    "token_estimate": 166,
+    "char_count": 664,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_018",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "DenyServiceExternalIPs"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > DenyServiceExternalIPs",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > DenyServiceExternalIPs]\n\n**Type**: Validating.\n\nThis admission controller rejects all net-new usage of the `Service` field `externalIPs`.  This\nfeature is very powerful (allows network traffic interception) and not well\ncontrolled by policy.  When enabled, users of the cluster may not create new\nServices which use `externalIPs` and may not add new values to `externalIPs` on\nexisting `Service` objects.  Existing uses of `externalIPs` are not affected,\nand users may remove values from `externalIPs` on existing `Service` objects.\n\nMost users do not need this feature at all, and cluster admins should consider disabling it.\nClusters that do need to use this feature should consider using some custom policy to manage usage\nof it.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 216,
+    "char_count": 864,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_019",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "EventRateLimit"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > EventRateLimit",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > EventRateLimit]\n\n[Feature State: alpha]\n\n**Type**: Validating.\n\nThis admission controller mitigates the problem where the API server gets flooded by\nrequests to store new Events. The cluster admin can specify event rate limits by:\n\n* Enabling the `EventRateLimit` admission controller;\n* Referencing an `EventRateLimit` configuration file from the file provided to the API\n  server's command line flag `--admission-control-config-file`:\n\n```yaml\napiVersion: apiserver.config.k8s.io/v1\nkind: AdmissionConfiguration\nplugins:\n  - name: EventRateLimit\n    path: eventconfig.yaml\n...\n```\n\nThere are four types of limits that can be specified in the configuration:\n\n * `Server`: All Event requests (creation or modifications) received by the API server share a single bucket.\n * `Namespace`: Each namespace has a dedicated bucket.\n * `User`: Each user is allocated a bucket.\n * `SourceAndObject`: A bucket is assigned by each combination of source and\n   involved object of the event.\n\nBelow is a sample `eventconfig.yaml` for such a configuration:\n\n```yaml\napiVersion: eventratelimit.admission.k8s.io/v1alpha1\nkind: Configuration\nlimits:\n  - type: Namespace\n    qps: 50\n    burst: 100\n    cacheSize: 2000\n  - type: User\n    qps: 10\n    burst: 50\n```\n\nSee the [EventRateLimit Config API (v1alpha1)](/docs/reference/config-api/apiserver-eventratelimit.v1alpha1/)\nfor more details.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 376,
+    "char_count": 1505,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_020",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ExtendedResourceToleration"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ExtendedResourceToleration",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ExtendedResourceToleration]\n\n**Type**: Mutating.\n\nThis plug-in facilitates creation of dedicated nodes with extended resources.\nIf operators want to create dedicated nodes with extended resources (like GPUs, FPGAs etc.), they are expected to\n[taint the node](/docs/concepts/scheduling-eviction/taint-and-toleration/#example-use-cases) with the extended resource\nname as the key. This admission controller, if enabled, automatically\nadds tolerations for such taints to pods requesting extended resources, so users don't have to manually\nadd these tolerations.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 172,
+    "char_count": 690,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_021",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ImagePolicyWebhook"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook]\n\n**Type**: Validating.\n\nThe ImagePolicyWebhook admission controller allows a backend webhook to make admission decisions.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 68,
+    "char_count": 273,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_022",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ImagePolicyWebhook",
+      "Configuration file format"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Configuration file format",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Configuration file format]\n\nImagePolicyWebhook uses a configuration file to set options for the behavior of the backend.\nThis file may be json or yaml and has the following format:\n\n```yaml\nimagePolicy:\n  kubeConfigFile: /path/to/kubeconfig/for/backend\n  # time in s to cache approval\n  allowTTL: 50\n  # time in s to cache denial\n  denyTTL: 50\n  # time in ms to wait between retries\n  retryBackoff: 500\n  # determines behavior if the webhook backend fails\n  defaultAllow: true\n```\n\nReference the ImagePolicyWebhook configuration file from the file provided to the API server's command line flag `--admission-control-config-file`:\n\n```yaml\napiVersion: apiserver.config.k8s.io/v1\nkind: AdmissionConfiguration\nplugins:\n  - name: ImagePolicyWebhook\n    path: imagepolicyconfig.yaml\n...\n```\n\nAlternatively, you can embed the configuration directly in the file:\n\n```yaml\napiVersion: apiserver.config.k8s.io/v1\nkind: AdmissionConfiguration\nplugins:\n  - name: ImagePolicyWebhook\n    configuration:\n      imagePolicy:\n        kubeConfigFile: <path-to-kubeconfig-file>\n        allowTTL: 50\n        denyTTL: 50\n        retryBackoff: 500\n        defaultAllow: true\n```\n\nThe ImagePolicyWebhook config file must reference a\n[kubeconfig](/docs/tasks/access-application-cluster/configure-access-multiple-clusters/)\nformatted file which sets up the connection to the backend.\nIt is required that the backend communicate over TLS.\n\nThe kubeconfig file's `cluster` field must point to the remote service, and the `user` field\nmust contain the returned authorizer.\n\n```yaml\n# clusters refers to the remote service.\nclusters:\n  - name: name-of-remote-imagepolicy-service\n    cluster:\n      certificate-authority: /path/to/ca.pem    # CA for verifying the remote service.\n      server: https://images.example.com/policy # URL of remote service to query. Must use 'https'.\n\n# users refers to the API server's webhook configuration.\nusers:\n  - name: name-of-api-server\n    user:\n      client-certificate: /path/to/cert.pem # cert for the webhook admission controller to use\n      client-key: /path/to/key.pem          # key matching the cert\n```\n\nFor additional HTTP configuration, refer to the\n[kubeconfig](/docs/tasks/access-application-cluster/configure-access-multiple-clusters/) documentation.",
+    "token_estimate": 594,
+    "char_count": 2376,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_023",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ImagePolicyWebhook",
+      "Request payloads"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Request payloads",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Request payloads]\n\nWhen faced with an admission decision, the API Server POSTs a JSON serialized\n`imagepolicy.k8s.io/v1alpha1` `ImageReview` object describing the action.\nThis object contains fields describing the containers being admitted, as well as\nany pod annotations that match `*.image-policy.k8s.io/*`.\n\n\n> **Note:** \nThe webhook API objects are subject to the same versioning compatibility rules\nas other Kubernetes API objects. Implementers should be aware of looser compatibility\npromises for alpha objects and check the `apiVersion` field of the request to\nensure correct deserialization.\nAdditionally, the API Server must enable the `imagepolicy.k8s.io/v1alpha1` API extensions\ngroup (`--runtime-config=imagepolicy.k8s.io/v1alpha1=true`).\n\n\n\nAn example request body:\n\n```json\n{\n  \"apiVersion\": \"imagepolicy.k8s.io/v1alpha1\",\n  \"kind\": \"ImageReview\",\n  \"spec\": {\n    \"containers\": [\n      {\n        \"image\": \"myrepo/myimage:v1\"\n      },\n      {\n        \"image\": \"myrepo/myimage@sha256:beb6bd6a68f114c1dc2ea4b28db81bdf91de202a9014972bec5e4d9171d90ed\"\n      }\n    ],\n    \"annotations\": {\n      \"mycluster.image-policy.k8s.io/ticket-1234\": \"break-glass\"\n    },\n    \"namespace\": \"mynamespace\"\n  }\n}\n```\n\nThe remote service is expected to fill the `status` field of the request and\nrespond to either allow or disallow access. The response body's `spec` field is ignored, and\nmay be omitted. A permissive response would return:\n\n```json\n{\n  \"apiVersion\": \"imagepolicy.k8s.io/v1alpha1\",\n  \"kind\": \"ImageReview\",\n  \"status\": {\n    \"allowed\": true\n  }\n}\n```\n\nTo disallow access, the service would return:\n\n```json\n{\n  \"apiVersion\": \"imagepolicy.k8s.io/v1alpha1\",\n  \"kind\": \"ImageReview\",\n  \"status\": {\n    \"allowed\": false,\n    \"reason\": \"image currently blacklisted\"\n  }\n}\n```\n\n\n> **Note:** \n`ImageReview` objects will include all images in Pods intended to be executed as\ncontainers. This covers images specified as part of the containers,\ninitContainers, or ephemeralContainers fields in a Pod specification. As a\nresult, images included under image volumes are not in scope for the\nImagePolicyWebhook.\n\n\n\nFor further documentation refer to the\n[`imagepolicy.v1alpha1` API](/docs/reference/config-api/imagepolicy.v1alpha1/).",
+    "token_estimate": 582,
+    "char_count": 2331,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_024",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ImagePolicyWebhook",
+      "Extending with Annotations"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Extending with Annotations",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ImagePolicyWebhook > Extending with Annotations]\n\nAll annotations on a Pod that match `*.image-policy.k8s.io/*` are sent to the webhook.\nSending annotations allows users who are aware of the image policy backend to\nsend extra information to it, and for different backends implementations to\naccept different information.\n\nExamples of information you might put here are:\n\n* request to \"break glass\" to override a policy, in case of emergency.\n* a ticket number from a ticket system that documents the break-glass request\n* provide a hint to the policy server as to the imageID of the image being provided, to save it a lookup\n\nIn any case, the annotations are provided by the user and are not validated by Kubernetes in any way.",
+    "token_estimate": 202,
+    "char_count": 808,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_025",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "LimitPodHardAntiAffinityTopology"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > LimitPodHardAntiAffinityTopology",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > LimitPodHardAntiAffinityTopology]\n\n**Type**: Validating.\n\nThis admission controller denies any pod that defines an `AntiAffinity` topology key other than\n`kubernetes.io/hostname` in `requiredDuringSchedulingIgnoredDuringExecution`.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 90,
+    "char_count": 363,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_026",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "LimitRanger"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > LimitRanger",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > LimitRanger]\n\n**Type**: Mutating and Validating.\n\nThis admission controller will observe the incoming request and ensure that it does not violate\nany of the constraints enumerated in the `LimitRange` object in a `Namespace`.  If you are using\n`LimitRange` objects in your Kubernetes deployment, you MUST use this admission controller to\nenforce those constraints. LimitRanger can also be used to apply default resource requests to Pods\nthat don't specify any; currently, the default LimitRanger applies a 0.1 CPU requirement to all\nPods in the `default` namespace.\n\nSee the [LimitRange API reference](/docs/reference/kubernetes-api/policy-resources/limit-range-v1/)\nand the [example of LimitRange](/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/)\nfor more details.",
+    "token_estimate": 217,
+    "char_count": 871,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_027",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "MutatingAdmissionWebhook"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > MutatingAdmissionWebhook",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > MutatingAdmissionWebhook]\n\n**Type**: Mutating.\n\nThis admission controller calls any mutating webhooks which match the request. Matching\nwebhooks are called in serial; each one may modify the object if it desires.\n\nThis admission controller (as implied by the name) only runs in the mutating phase.\n\nIf a webhook called by this has side effects (for example, decrementing quota) it\n*must* have a reconciliation system, as it is not guaranteed that subsequent\nwebhooks or validating admission controllers will permit the request to finish.\n\nIf you disable the MutatingAdmissionWebhook, you must also disable the\n`MutatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1`\ngroup/version via the `--runtime-config` flag, both are on by default.",
+    "token_estimate": 210,
+    "char_count": 840,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_028",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "MutatingAdmissionWebhook",
+      "Use caution when authoring and installing mutating webhooks"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > MutatingAdmissionWebhook > Use caution when authoring and installing mutating webhooks",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > MutatingAdmissionWebhook > Use caution when authoring and installing mutating webhooks]\n\n* Users may be confused when the objects they try to create are different from\n  what they get back.\n* Built in control loops may break when the objects they try to create are\n  different when read back.\n  * Setting originally unset fields is less likely to cause problems than\n    overwriting fields set in the original request. Avoid doing the latter.\n* Future changes to control loops for built-in resources or third-party resources\n  may break webhooks that work well today. Even when the webhook installation API\n  is finalized, not all possible webhook behaviors will be guaranteed to be supported\n  indefinitely.",
+    "token_estimate": 197,
+    "char_count": 789,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_029",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NamespaceAutoProvision"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NamespaceAutoProvision",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NamespaceAutoProvision]\n\n**Type**: Mutating.\n\nThis admission controller examines all incoming requests on namespaced resources and checks\nif the referenced namespace does exist.\nIt creates a namespace if it cannot be found.\nThis admission controller is useful in deployments that do not want to restrict creation of\na namespace prior to its usage.",
+    "token_estimate": 107,
+    "char_count": 428,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_030",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NamespaceExists"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NamespaceExists",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NamespaceExists]\n\n**Type**: Validating.\n\nThis admission controller checks all requests on namespaced resources other than `Namespace` itself.\nIf the namespace referenced from a request doesn't exist, the request is rejected.",
+    "token_estimate": 76,
+    "char_count": 305,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_031",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NamespaceLifecycle"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NamespaceLifecycle",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NamespaceLifecycle]\n\n**Type**: Validating.\n\nThis admission controller enforces that a `Namespace` that is undergoing termination cannot have\nnew objects created in it, and ensures that requests in a non-existent `Namespace` are rejected.\nThis admission controller also prevents deletion of three system reserved namespaces `default`,\n`kube-system`, `kube-public`.\n\nA `Namespace` deletion kicks off a sequence of operations that remove all objects (pods, services,\netc.) in that namespace.  In order to enforce integrity of that process, we strongly recommend\nrunning this admission controller.",
+    "token_estimate": 168,
+    "char_count": 674,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_032",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NodeDeclaredFeatureValidator"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NodeDeclaredFeatureValidator",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NodeDeclaredFeatureValidator]\n\n[Feature Gate: NodeDeclaredFeatures]\n\n**Type**: Validating.\n\nThis admission controller intercepts writes to bound Pods, to ensure that the\nchanges are compatible with the features declared by the node where the Pod is\ncurrently running. It uses the `.status.declaredFeatures` field of the Node to\ndetermine the set of enabled features. If a Pod update requires a feature that\nis not listed in the features of its current node, the admission controller\nwill reject the update request. This prevents runtime failures due to feature\nmismatch after a Pod has been scheduled.\n\nThis admission controller is enabled by\ndefault if the [`NodeDeclaredFeatures`](/docs/reference/command-line-tools-reference/feature-gates/#NodeDeclaredFeatures) feature gate is enabled.",
+    "token_estimate": 217,
+    "char_count": 870,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_033",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NodeRestriction"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 1/3)",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 1/3)]\n\n**Type**: Validating.\n\nThis admission controller limits the `Node` and `Pod` objects a kubelet can modify. In order to be limited by this admission controller,\nkubelets must use credentials in the `system:nodes` group, with a username in the form `system:node:<nodeName>`.\nSuch kubelets will only be allowed to modify their own `Node` API object, and only modify `Pod` API objects that are bound to their node.\nkubelets are not allowed to update or remove taints from their `Node` API object.\n\nThe `NodeRestriction` admission plugin prevents kubelets from deleting their `Node` API object,\nand enforces kubelet modification of labels under the `kubernetes.io/` or `k8s.io/` prefixes as follows:",
+    "token_estimate": 201,
+    "char_count": 804,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_034",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NodeRestriction"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 2/3)",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 2/3)]\n\n* **Forbidden** (Kubelets are blocked from modifying these):\n  * Labels with a `node-restriction.kubernetes.io/` prefix. This prefix is reserved for administrators to label `Node` objects for workload isolation.\n  * Labels with a `node-role.kubernetes.io/` prefix (for example: `node-role.kubernetes.io/control-plane`). These are restricted to prevent unprivileged nodes from self-declaring cluster roles.\n* **Allowed** (Kubelets can add/remove/update these):\n  * `kubernetes.io/hostname`\n  * `kubernetes.io/arch`\n  * `kubernetes.io/os`\n  * `beta.kubernetes.io/instance-type`\n  * `node.kubernetes.io/instance-type`\n  * `failure-domain.beta.kubernetes.io/region` (deprecated)\n  * `failure-domain.beta.kubernetes.io/zone` (deprecated)\n  * `topology.kubernetes.io/region`\n  * `topology.kubernetes.io/zone`\n  * `kubelet.kubernetes.io/`-prefixed labels\n  * `node.kubernetes.io/`-prefixed labels\n* **Reserved**:\n  Use of any other labels under the `kubernetes.io` or `k8s.io` prefixes by kubelets is reserved.\n  The `NodeRestriction` admission plugin generally disallows these to prevent unauthorized self-labeling,\n  but may allow additional labels under these prefixes in the future as part of future features.",
+    "token_estimate": 329,
+    "char_count": 1316,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_035",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "NodeRestriction"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 3/3)",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > NodeRestriction (Part 3/3)]\n\nWhen the `ServiceAccountNodeAudienceRestriction` [feature gate](/docs/reference/command-line-tools-reference/feature-gates/)\nis enabled, this admission plugin also restricts the audiences for which a kubelet can\nrequest service account tokens via the `TokenRequest` API. The kubelet can only request\ntokens for audiences already referenced by pods on that node (through projected service\naccount token volumes or CSI driver token requests), or for audiences explicitly granted\nthrough RBAC using the `request-serviceaccounts-token-audience` verb. For more details,\nsee [Service account token audience restriction](/docs/reference/access-authn-authz/node/#service-account-token-audience-restriction).\n\nFuture versions may add additional restrictions to ensure kubelets have the minimal set of\npermissions required to operate correctly.",
+    "token_estimate": 236,
+    "char_count": 944,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_036",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "OwnerReferencesPermissionEnforcement"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > OwnerReferencesPermissionEnforcement",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > OwnerReferencesPermissionEnforcement]\n\n**Type**: Validating.\n\nThis admission controller protects the access to the `metadata.ownerReferences` of an object\nso that only users with **delete** permission to the object can change it.\nThis admission controller also protects the access to `metadata.ownerReferences[x].blockOwnerDeletion`\nof an object, so that only users with **update** permission to the `finalizers`\nsubresource of the referenced *owner* can change it.",
+    "token_estimate": 136,
+    "char_count": 546,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_037",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PersistentVolumeClaimResize"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PersistentVolumeClaimResize",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PersistentVolumeClaimResize]\n\n[Feature State: stable]\n\n**Type**: Validating.\n\nThis admission controller implements additional validations for checking incoming\n`PersistentVolumeClaim` resize requests.\n\nEnabling the `PersistentVolumeClaimResize` admission controller is recommended.\nThis admission controller prevents resizing of all claims by default unless a claim's `StorageClass`\n explicitly enables resizing by setting `allowVolumeExpansion` to `true`.\n\nFor example: all `PersistentVolumeClaim`s created from the following `StorageClass` support volume expansion:\n\n```yaml\napiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: gluster-vol-default\nprovisioner: kubernetes.io/glusterfs\nparameters:\n  resturl: \"http://192.168.10.100:8080\"\n  restuser: \"\"\n  secretNamespace: \"\"\n  secretName: \"\"\nallowVolumeExpansion: true\n```\n\nFor more information about persistent volume claims, see [PersistentVolumeClaims](/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims).",
+    "token_estimate": 267,
+    "char_count": 1069,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_038",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodNodeSelector"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector]\n\n[Feature State: alpha]\n\n**Type**: Validating.\n\nThis admission controller defaults and limits what node selectors may be used within a namespace\nby reading a namespace annotation and a global configuration.\n\nThis admission controller is disabled by default.",
+    "token_estimate": 88,
+    "char_count": 355,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_039",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodNodeSelector",
+      "Configuration file format"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Configuration file format",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Configuration file format]\n\n`PodNodeSelector` uses a configuration file to set options for the behavior of the backend.\nNote that the configuration file format will move to a versioned file in a future release.\nThis file may be json or yaml and has the following format:\n\n```yaml\npodNodeSelectorPluginConfig:\n  clusterDefaultNodeSelector: name-of-node-selector\n  namespace1: name-of-node-selector\n  namespace2: name-of-node-selector\n```\n\nReference the `PodNodeSelector` configuration file from the file provided to the API server's\ncommand line flag `--admission-control-config-file`:\n\n```yaml\napiVersion: apiserver.config.k8s.io/v1\nkind: AdmissionConfiguration\nplugins:\n- name: PodNodeSelector\n  path: podnodeselector.yaml\n...\n```",
+    "token_estimate": 207,
+    "char_count": 830,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_040",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodNodeSelector",
+      "Configuration Annotation Format"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Configuration Annotation Format",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Configuration Annotation Format]\n\n`PodNodeSelector` uses the annotation key `scheduler.alpha.kubernetes.io/node-selector` to assign\nnode selectors to namespaces.\n\n```yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  annotations:\n    scheduler.alpha.kubernetes.io/node-selector: name-of-node-selector\n  name: namespace3\n```",
+    "token_estimate": 104,
+    "char_count": 419,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_041",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodNodeSelector",
+      "Internal Behavior"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Internal Behavior",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodNodeSelector > Internal Behavior]\n\nThis admission controller has the following behavior:\n\n1. If the `Namespace` has an annotation with a key `scheduler.alpha.kubernetes.io/node-selector`,\n   use its value as the node selector.\n2. If the namespace lacks such an annotation, use the `clusterDefaultNodeSelector` defined in the\n   `PodNodeSelector` plugin configuration file as the node selector.\n3. Evaluate the pod's node selector against the namespace node selector for conflicts. Conflicts\n   result in rejection.\n4. Evaluate the pod's node selector against the namespace-specific allowed selector defined the\n   plugin configuration file. Conflicts result in rejection.\n\n\n> **Note:** \nPodNodeSelector allows forcing pods to run on specifically labeled nodes. Also see the PodTolerationRestriction\nadmission plugin, which allows preventing pods from running on specifically tainted nodes.",
+    "token_estimate": 243,
+    "char_count": 973,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_042",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodSecurity"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodSecurity",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodSecurity]\n\n[Feature State: stable]\n\n**Type**: Validating.\n\nThe PodSecurity admission controller checks new Pods before they are\nadmitted, determines if it should be admitted based on the requested security context and the restrictions on permitted\n[Pod Security Standards](/docs/concepts/security/pod-security-standards/)\nfor the namespace that the Pod would be in.\n\nSee the [Pod Security Admission](/docs/concepts/security/pod-security-admission/)\ndocumentation for more information.\n\nPodSecurity replaced an older admission controller named PodSecurityPolicy.",
+    "token_estimate": 161,
+    "char_count": 645,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_043",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodTolerationRestriction"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodTolerationRestriction",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodTolerationRestriction]\n\n[Feature State: alpha]\n\n**Type**: Mutating and Validating.\n\nThe PodTolerationRestriction admission controller verifies any conflict between tolerations of a\npod and the tolerations of its namespace.\nIt rejects the pod request if there is a conflict.\nIt then merges the tolerations annotated on the namespace into the tolerations of the pod.\nThe resulting tolerations are checked against a list of allowed tolerations annotated to the namespace.\nIf the check succeeds, the pod request is admitted otherwise it is rejected.\n\nIf the namespace of the pod does not have any associated default tolerations or allowed\ntolerations annotated, the cluster-level default tolerations or cluster-level list of allowed tolerations are used\ninstead if they are specified.\n\nTolerations to a namespace are assigned via the `scheduler.alpha.kubernetes.io/defaultTolerations` annotation key.\nThe list of allowed tolerations can be added via the `scheduler.alpha.kubernetes.io/tolerationsWhitelist` annotation key.\n\nExample for namespace annotations:\n\n```yaml\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: apps-that-need-nodes-exclusively\n  annotations:\n    scheduler.alpha.kubernetes.io/defaultTolerations: '[{\"operator\": \"Exists\", \"effect\": \"NoSchedule\", \"key\": \"dedicated-node\"}]'\n    scheduler.alpha.kubernetes.io/tolerationsWhitelist: '[{\"operator\": \"Exists\", \"effect\": \"NoSchedule\", \"key\": \"dedicated-node\"}]'\n```\n\nThis admission controller is disabled by default.",
+    "token_estimate": 390,
+    "char_count": 1561,
+    "has_code_block": true,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_044",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "PodTopologyLabels"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > PodTopologyLabels",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > PodTopologyLabels]\n\n[Feature Gate: PodTopologyLabelsAdmission]\n\n**Type**: Mutating\n\nThe PodTopologyLabels admission controller mutates the `pods/binding` subresources\nfor all pods bound to a Node, adding topology labels matching those of the bound Node.\nThis allows Node topology labels to be available as pod labels,\nwhich can be surfaced to running containers using the\n[Downward API](/docs/concepts/workloads/pods/downward-api/).\nThe labels available as a result of this controller are the\n[topology.kubernetes.io/region](/docs/reference/labels-annotations-taints/#topologykubernetesioregion) and\n[topology.kuberentes.io/zone](/docs/reference/labels-annotations-taints/#topologykubernetesiozone) labels.\n\n\n> **Note:** \nIf any mutating admission webhook adds or modifies labels of the `pods/binding` subresource,\nthese changes will propagate to pod labels as a result of this controller,\noverwriting labels with conflicting keys.\n\n\n\nThis admission controller is enabled when the `PodTopologyLabelsAdmission` feature gate is enabled.",
+    "token_estimate": 278,
+    "char_count": 1115,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_045",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "Priority"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > Priority",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > Priority]\n\n**Type**: Mutating and Validating.\n\nThe priority admission controller uses the `priorityClassName` field and populates the integer\nvalue of the priority.\nIf the priority class is not found, the Pod is rejected.",
+    "token_estimate": 75,
+    "char_count": 302,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_046",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ResourceQuota"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ResourceQuota",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ResourceQuota]\n\n**Type**: Validating.\n\nThis admission controller will observe the incoming request and ensure that it does not violate\nany of the constraints enumerated in the `ResourceQuota` object in a `Namespace`.  If you are\nusing `ResourceQuota` objects in your Kubernetes deployment, you MUST use this admission\ncontroller to enforce quota constraints.\n\nSee the [ResourceQuota API reference](/docs/reference/kubernetes-api/policy-resources/resource-quota-v1/)\nand the [example of Resource Quota](/docs/concepts/policy/resource-quotas/) for more details.",
+    "token_estimate": 160,
+    "char_count": 640,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_047",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "RuntimeClass"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > RuntimeClass",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > RuntimeClass]\n\n**Type**: Mutating and Validating.\n\nIf you define a RuntimeClass with [Pod overhead](/docs/concepts/scheduling-eviction/pod-overhead/)\nconfigured, this admission controller checks incoming Pods.\nWhen enabled, this admission controller rejects any Pod create requests\nthat have the overhead already set.\nFor Pods that have a RuntimeClass configured and selected in their `.spec`,\nthis admission controller sets `.spec.overhead` in the Pod based on the value\ndefined in the corresponding RuntimeClass.\n\nSee also [Pod Overhead](/docs/concepts/scheduling-eviction/pod-overhead/)\nfor more information.",
+    "token_estimate": 173,
+    "char_count": 692,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_048",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ServiceAccount"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ServiceAccount",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ServiceAccount]\n\n**Type**: Mutating and Validating.\n\nThis admission controller implements automation for\n[serviceAccounts](/docs/tasks/configure-pod-container/configure-service-account/).\nThe Kubernetes project strongly recommends enabling this admission controller.\nYou should enable this admission controller if you intend to make any use of Kubernetes\n`ServiceAccount` objects.\n\nTo enhance the security measures around Secrets, use separate namespaces to isolate access to mounted secrets.",
+    "token_estimate": 143,
+    "char_count": 573,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_049",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "StorageObjectInUseProtection"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > StorageObjectInUseProtection",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > StorageObjectInUseProtection]\n\n**Type**: Mutating.\n\nThe `StorageObjectInUseProtection` plugin adds the `kubernetes.io/pvc-protection` or `kubernetes.io/pv-protection`\nfinalizers to newly created Persistent Volume Claims (PVCs) or Persistent Volumes (PV).\nIn case a user deletes a PVC or PV the PVC or PV is not removed until the finalizer is removed\nfrom the PVC or PV by PVC or PV Protection Controller.\nRefer to the\n[Storage Object in Use Protection](/docs/concepts/storage/persistent-volumes/#storage-object-in-use-protection)\nfor more detailed information.",
+    "token_estimate": 160,
+    "char_count": 641,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_050",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "TaintNodesByCondition"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > TaintNodesByCondition",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > TaintNodesByCondition]\n\n**Type**: Mutating.\n\nThis admission controller taints newly created\nNodes as `NotReady` and `NoSchedule`. That tainting avoids a race condition that could cause Pods\nto be scheduled on new Nodes before their taints were updated to accurately reflect their reported\nconditions.",
+    "token_estimate": 95,
+    "char_count": 381,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_051",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ValidatingAdmissionPolicy"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ValidatingAdmissionPolicy",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ValidatingAdmissionPolicy]\n\n**Type**: Validating.\n\n[This admission controller](/docs/reference/access-authn-authz/validating-admission-policy/) implements the CEL validation for incoming matched requests. \nIt is enabled when both feature gate `validatingadmissionpolicy` and `admissionregistration.k8s.io/v1alpha1` group/version are enabled.\nIf any of the ValidatingAdmissionPolicy fails, the request fails.",
+    "token_estimate": 122,
+    "char_count": 488,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_052",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "What does each admission controller do?",
+      "ValidatingAdmissionWebhook"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > What does each admission controller do? > ValidatingAdmissionWebhook",
+    "content": "### [Admission Control in Kubernetes > What does each admission controller do? > ValidatingAdmissionWebhook]\n\n**Type**: Validating.\n\nThis admission controller calls any validating webhooks which match the request. Matching\nwebhooks are called in parallel; if any of them rejects the request, the request\nfails. This admission controller only runs in the validation phase; the webhooks it calls may not\nmutate the object, as opposed to the webhooks called by the `MutatingAdmissionWebhook` admission controller.\n\nIf a webhook called by this has side effects (for example, decrementing quota) it\n*must* have a reconciliation system, as it is not guaranteed that subsequent\nwebhooks or other validating admission controllers will permit the request to finish.\n\nIf you disable the ValidatingAdmissionWebhook, you must also disable the\n`ValidatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1`\ngroup/version via the `--runtime-config` flag.",
+    "token_estimate": 239,
+    "char_count": 958,
+    "has_code_block": false,
+    "has_table": false
+  },
+  {
+    "chunk_id": "admission_ctrl_chunk_053",
+    "doc_path": "fde-k8s/website/content/en/docs/reference/access-authn-authz/admission-controllers.md",
+    "doc_title": "Admission Control in Kubernetes",
+    "heading_hierarchy": [
+      "Admission Control in Kubernetes",
+      "Is there a recommended set of admission controllers to use?"
+    ],
+    "breadcrumb": "Admission Control in Kubernetes > Is there a recommended set of admission controllers to use?",
+    "content": "### [Admission Control in Kubernetes > Is there a recommended set of admission controllers to use?]\n\nYes. The recommended admission controllers are enabled by default\n(shown [here](/docs/reference/command-line-tools-reference/kube-apiserver/#options)),\nso you do not need to explicitly specify them.\nYou can enable additional admission controllers beyond the default set using the\n`--enable-admission-plugins` flag (**order doesn't matter**).",
+    "token_estimate": 110,
+    "char_count": 442,
+    "has_code_block": false,
+    "has_table": false
+  }
+]
