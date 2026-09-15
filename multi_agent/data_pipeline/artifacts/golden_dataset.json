@@ -1,0 +1,262 @@
+[
+  {
+    "id": "TC-01",
+    "category": "Pod Lifecycle / Troubleshooting",
+    "question": "What is CrashLoopBackOff and how does Kubernetes manage container restart backoff delay?",
+    "expected_chunk_ids": [
+      "concepts_workloads_pods_pod_lifecycle_chunk_012",
+      "concepts_workloads_pods_pod_lifecycle_chunk_030"
+    ],
+    "expected_breadcrumbs": [
+      "Pod Lifecycle > How Pods handle problems with containers",
+      "Pod Lifecycle > Container states"
+    ],
+    "must_contain": ["CrashLoopBackOff", "restartPolicy", "exponential"]
+  },
+  {
+    "id": "TC-02",
+    "category": "Pod Lifecycle / Troubleshooting",
+    "question": "What is the primary operational difference between a liveness probe and a readiness probe?",
+    "expected_chunk_ids": [
+      "concepts_workloads_pods_pod_lifecycle_chunk_040",
+      "concepts_workloads_pods_pod_lifecycle_chunk_041",
+      "concepts_workloads_pods_probes_chunk_007",
+      "concepts_workloads_pods_probes_chunk_008"
+    ],
+    "expected_breadcrumbs": [
+      "Container probes > Liveness probe",
+      "Container probes > Readiness probe",
+      "Liveness, Readiness, and Startup Probes"
+    ],
+    "must_contain": ["Liveness", "restart", "readiness"]
+  },
+  {
+    "id": "TC-03",
+    "category": "Pod Lifecycle / Troubleshooting",
+    "question": "What sequence of events happens during Pod termination when a pod is deleted with a grace period?",
+    "expected_chunk_ids": [
+      "concepts_workloads_pods_pod_lifecycle_chunk_036",
+      "concepts_workloads_pods_pod_lifecycle_chunk_045",
+      "concepts_workloads_pods_pod_lifecycle_chunk_046"
+    ],
+    "expected_breadcrumbs": [
+      "Pod Lifecycle > Termination of Pods"
+    ],
+    "must_contain": ["grace period", "kubectl", "dead"]
+  },
+  {
+    "id": "TC-04",
+    "category": "Storage & Volumes",
+    "question": "How does the Kubernetes control plane bind a PersistentVolumeClaim to a PersistentVolume?",
+    "expected_chunk_ids": [
+      "concepts_storage_persistent_volumes_chunk_007",
+      "tutorials_configuration_configure_persistent_volume_storage_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Storage orchestration > Lifecycle of a volume and claim > Binding",
+      "Create a PersistentVolumeClaim"
+    ],
+    "must_contain": ["PersistentVolumeClaim", "PersistentVolume", "Bound"]
+  },
+  {
+    "id": "TC-05",
+    "category": "Storage & Volumes",
+    "question": "Why is volumeBindingMode set to WaitForFirstConsumer instead of Immediate in a StorageClass?",
+    "expected_chunk_ids": [
+      "reference_kubernetes_api_storage_storage_class_v1_chunk_004",
+      "concepts_storage_storage_classes_chunk_008"
+    ],
+    "expected_breadcrumbs": [
+      "StorageClass",
+      "Storage Classes > Volume binding mode"
+    ],
+    "must_contain": ["volumeBindingMode", "Immediate", "WaitForFirstConsumer"]
+  },
+  {
+    "id": "TC-06",
+    "category": "Storage & Volumes",
+    "question": "What required fields must each StorageClass object contain, such as provisioner and reclaimPolicy?",
+    "expected_chunk_ids": [
+      "concepts_storage_storage_classes_chunk_002",
+      "concepts_storage_storage_classes_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Storage Classes > StorageClass objects",
+      "Storage Classes > Provisioner"
+    ],
+    "must_contain": ["provisioner", "reclaimPolicy", "parameters"]
+  },
+  {
+    "id": "TC-07",
+    "category": "Networking & Ingress",
+    "question": "What are the differences between ClusterIP, NodePort, and LoadBalancer Service types?",
+    "expected_chunk_ids": [
+      "concepts_services_networking_service_chunk_014",
+      "concepts_services_networking_service_chunk_021",
+      "concepts_services_networking_service_chunk_024"
+    ],
+    "expected_breadcrumbs": [
+      "Service discovery and load balancing > Service type"
+    ],
+    "must_contain": ["ClusterIP", "NodePort", "LoadBalancer"]
+  },
+  {
+    "id": "TC-08",
+    "category": "Networking & Ingress",
+    "question": "How do you configure a default deny all ingress traffic isolation policy in a namespace?",
+    "expected_chunk_ids": [
+      "concepts_services_networking_network_policies_chunk_009"
+    ],
+    "expected_breadcrumbs": [
+      "Network Policies > Default policies > Default deny all ingress traffic"
+    ],
+    "must_contain": ["ingress", "NetworkPolicy", "isolated"]
+  },
+  {
+    "id": "TC-09",
+    "category": "Networking & Ingress",
+    "question": "What are the three supported path types in a Kubernetes Ingress and how does Prefix matching work?",
+    "expected_chunk_ids": [
+      "concepts_services_networking_ingress_chunk_009"
+    ],
+    "expected_breadcrumbs": [
+      "Ingress > The Ingress resource > Path types"
+    ],
+    "must_contain": ["ImplementationSpecific", "Exact", "Prefix"]
+  },
+  {
+    "id": "TC-10",
+    "category": "Networking & Ingress",
+    "question": "How does cluster DNS format A and AAAA records for normal versus headless Services?",
+    "expected_chunk_ids": [
+      "concepts_services_networking_dns_pod_service_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "DNS for Services and Pods > Services > A/AAAA records"
+    ],
+    "must_contain": ["Normal", "Headless Services", "cluster IP"]
+  },
+  {
+    "id": "TC-11",
+    "category": "Security & RBAC",
+    "question": "What is the difference between a Role and a ClusterRole in Kubernetes RBAC authorization?",
+    "expected_chunk_ids": [
+      "reference_access_authn_authz_rbac_chunk_003",
+      "reference_access_authn_authz_rbac_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Using RBAC Authorization > API objects > Role and ClusterRole"
+    ],
+    "must_contain": ["additive", "namespace", "ClusterRole"]
+  },
+  {
+    "id": "TC-12",
+    "category": "Security & RBAC",
+    "question": "What are the three policies defined by the Pod Security Standards and what levels of privilege do they allow?",
+    "expected_chunk_ids": [
+      "concepts_security_pod_security_standards_chunk_001",
+      "reference_access_authn_authz_psp_to_pod_security_standards_chunk_001"
+    ],
+    "expected_breadcrumbs": [
+      "Pod Security Standards"
+    ],
+    "must_contain": ["Privileged", "Baseline", "Restricted"]
+  },
+  {
+    "id": "TC-13",
+    "category": "Security & RBAC",
+    "question": "How does serviceAccountToken projected volume work, and what do audience and expirationSeconds configure?",
+    "expected_chunk_ids": [
+      "concepts_storage_projected_volumes_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Projected Volumes > serviceAccountToken projected volumes"
+    ],
+    "must_contain": ["serviceAccountToken", "audience", "expirationSeconds"]
+  },
+  {
+    "id": "TC-14",
+    "category": "Scheduling & HA",
+    "question": "What fields configure a PodDisruptionBudget and can you specify both minAvailable and maxUnavailable?",
+    "expected_chunk_ids": [
+      "tasks_run_application_configure_pdb_chunk_006"
+    ],
+    "expected_breadcrumbs": [
+      "Specifying a Disruption Budget for your Application > Specifying a PodDisruptionBudget"
+    ],
+    "must_contain": ["PodDisruptionBudget", "minAvailable", "maxUnavailable"]
+  },
+  {
+    "id": "TC-15",
+    "category": "Scheduling & HA",
+    "question": "What is the difference between requiredDuringSchedulingIgnoredDuringExecution and preferredDuringSchedulingIgnoredDuringExecution node affinity?",
+    "expected_chunk_ids": [
+      "concepts_scheduling_eviction_assign_pod_node_chunk_006"
+    ],
+    "expected_breadcrumbs": [
+      "Assigning Pods to Nodes > Affinity and anti-affinity > Node affinity"
+    ],
+    "must_contain": ["requiredDuringSchedulingIgnoredDuringExecution", "preferredDuringSchedulingIgnoredDuringExecution"]
+  },
+  {
+    "id": "TC-16",
+    "category": "Scheduling & HA",
+    "question": "What are the differences between NoSchedule and NoExecute taint effects on existing and new pods?",
+    "expected_chunk_ids": [
+      "concepts_scheduling_eviction_taint_and_toleration_chunk_003"
+    ],
+    "expected_breadcrumbs": [
+      "Taints and Tolerations > Concepts"
+    ],
+    "must_contain": ["NoExecute", "NoSchedule", "toleration"]
+  },
+  {
+    "id": "TC-17",
+    "category": "Scheduling & HA",
+    "question": "How does topologySpreadConstraints control pod distribution across failure domains using maxSkew?",
+    "expected_chunk_ids": [
+      "concepts_scheduling_eviction_topology_spread_constraints_chunk_003",
+      "concepts_scheduling_eviction_topology_spread_constraints_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Pod Topology Spread Constraints > `topologySpreadConstraints` field"
+    ],
+    "must_contain": ["topologySpreadConstraints", "maxSkew", "topologyKey"]
+  },
+  {
+    "id": "TC-18",
+    "category": "Admission Control",
+    "question": "Why do read requests like get, watch, or list bypass admission control in Kubernetes?",
+    "expected_chunk_ids": [
+      "admission_ctrl_chunk_002"
+    ],
+    "expected_breadcrumbs": [
+      "Admission Control in Kubernetes > What are they?"
+    ],
+    "must_contain": ["bypass", "read", "block"]
+  },
+  {
+    "id": "TC-19",
+    "category": "Admission Control",
+    "question": "What are the two phases of admission control and in what sequence do they execute?",
+    "expected_chunk_ids": [
+      "admission_ctrl_chunk_004"
+    ],
+    "expected_breadcrumbs": [
+      "Admission Control in Kubernetes > What are they? > Admission control phases"
+    ],
+    "must_contain": ["two phases", "mutating", "validating"]
+  },
+  {
+    "id": "TC-20",
+    "category": "Admission Control",
+    "question": "What does the AlwaysPullImages admission controller do to new pods?",
+    "expected_chunk_ids": [
+      "admission_ctrl_chunk_011"
+    ],
+    "expected_breadcrumbs": [
+      "Admission Control in Kubernetes > What does each admission controller do? > AlwaysPullImages"
+    ],
+    "must_contain": ["Always", "image pull policy", "mutating"]
+  }
+]

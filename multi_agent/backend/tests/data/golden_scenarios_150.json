@@ -1,0 +1,3002 @@
+[
+  {
+    "scenario_id": "SCENARIO-001",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in oomkilled-1: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-002",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in oomkilled-2: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-003",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in oomkilled-3: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-004",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in oomkilled-4: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-005",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in oomkilled-5: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-006",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in oomkilled-6: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-007",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in oomkilled-7: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-008",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in oomkilled-8: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-009",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in oomkilled-9: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-010",
+    "category": "OOMKilled",
+    "incident_description": "Pod terminated with exit code 137 due to memory limit breach (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in oomkilled-10: Pod terminated with exit code 137 due to memory limit breach. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "logs",
+      "memory",
+      "limits",
+      "resources"
+    ],
+    "expected_root_cause": "Root cause related to OOMKilled: Pod terminated with exit code 137 due to memory limit breach",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for OOMKilled",
+      "Examine container logs and namespace events for OOMKilled",
+      "Apply remediation or scaling adjustment for OOMKilled"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-011",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in crashloopbackoff-1: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-012",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in crashloopbackoff-2: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-013",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in crashloopbackoff-3: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-014",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in crashloopbackoff-4: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-015",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in crashloopbackoff-5: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-016",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in crashloopbackoff-6: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-017",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in crashloopbackoff-7: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-018",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in crashloopbackoff-8: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-019",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in crashloopbackoff-9: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-020",
+    "category": "CrashLoopBackOff",
+    "incident_description": "Application runtime panic or unhandled exception on startup (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in crashloopbackoff-10: Application runtime panic or unhandled exception on startup. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "previous",
+      "describe",
+      "events",
+      "exit"
+    ],
+    "expected_root_cause": "Root cause related to CrashLoopBackOff: Application runtime panic or unhandled exception on startup",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CrashLoopBackOff",
+      "Examine container logs and namespace events for CrashLoopBackOff",
+      "Apply remediation or scaling adjustment for CrashLoopBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-021",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in imagepullbackoff-1: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-022",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in imagepullbackoff-2: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-023",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in imagepullbackoff-3: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-024",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in imagepullbackoff-4: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-025",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in imagepullbackoff-5: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-026",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in imagepullbackoff-6: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-027",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in imagepullbackoff-7: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-028",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in imagepullbackoff-8: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-029",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in imagepullbackoff-9: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-030",
+    "category": "ImagePullBackOff",
+    "incident_description": "Container image not found or registry authentication failed (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in imagepullbackoff-10: Container image not found or registry authentication failed. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "image",
+      "secret",
+      "imagePullSecrets"
+    ],
+    "expected_root_cause": "Root cause related to ImagePullBackOff: Container image not found or registry authentication failed",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ImagePullBackOff",
+      "Examine container logs and namespace events for ImagePullBackOff",
+      "Apply remediation or scaling adjustment for ImagePullBackOff"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-031",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in failedscheduling-1: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-032",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in failedscheduling-2: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-033",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in failedscheduling-3: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-034",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in failedscheduling-4: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-035",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in failedscheduling-5: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-036",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in failedscheduling-6: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-037",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in failedscheduling-7: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-038",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in failedscheduling-8: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-039",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in failedscheduling-9: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-040",
+    "category": "FailedScheduling",
+    "incident_description": "No nodes available with requested CPU/Memory or matching taints (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in failedscheduling-10: No nodes available with requested CPU/Memory or matching taints. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "events",
+      "nodes",
+      "requests",
+      "tolerations"
+    ],
+    "expected_root_cause": "Root cause related to FailedScheduling: No nodes available with requested CPU/Memory or matching taints",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for FailedScheduling",
+      "Examine container logs and namespace events for FailedScheduling",
+      "Apply remediation or scaling adjustment for FailedScheduling"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-041",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in pvcunbound-1: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-042",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in pvcunbound-2: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-043",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in pvcunbound-3: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-044",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in pvcunbound-4: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-045",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in pvcunbound-5: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-046",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in pvcunbound-6: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-047",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in pvcunbound-7: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-048",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in pvcunbound-8: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-049",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in pvcunbound-9: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-050",
+    "category": "PVCUnbound",
+    "incident_description": "PersistentVolumeClaim stuck in Pending state with no matching PV (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in pvcunbound-10: PersistentVolumeClaim stuck in Pending state with no matching PV. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "describe",
+      "pvc",
+      "pv",
+      "storageclass"
+    ],
+    "expected_root_cause": "Root cause related to PVCUnbound: PersistentVolumeClaim stuck in Pending state with no matching PV",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for PVCUnbound",
+      "Examine container logs and namespace events for PVCUnbound",
+      "Apply remediation or scaling adjustment for PVCUnbound"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-051",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in evicted-1: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-052",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in evicted-2: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-053",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in evicted-3: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-054",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in evicted-4: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-055",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in evicted-5: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-056",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in evicted-6: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-057",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in evicted-7: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-058",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in evicted-8: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-059",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in evicted-9: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-060",
+    "category": "Evicted",
+    "incident_description": "Node memory or ephemeral disk pressure triggered eviction (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in evicted-10: Node memory or ephemeral disk pressure triggered eviction. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "ephemeral-storage",
+      "usage"
+    ],
+    "expected_root_cause": "Root cause related to Evicted: Node memory or ephemeral disk pressure triggered eviction",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Evicted",
+      "Examine container logs and namespace events for Evicted",
+      "Apply remediation or scaling adjustment for Evicted"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-061",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in nodenotready-1: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-062",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in nodenotready-2: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-063",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in nodenotready-3: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-064",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in nodenotready-4: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-065",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in nodenotready-5: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-066",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in nodenotready-6: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-067",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in nodenotready-7: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-068",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in nodenotready-8: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-069",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in nodenotready-9: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-070",
+    "category": "NodeNotReady",
+    "incident_description": "Kubelet stopped posting heartbeats or PLEG is unhealthy (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in nodenotready-10: Kubelet stopped posting heartbeats or PLEG is unhealthy. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "node",
+      "events",
+      "systemctl",
+      "kubelet"
+    ],
+    "expected_root_cause": "Root cause related to NodeNotReady: Kubelet stopped posting heartbeats or PLEG is unhealthy",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NodeNotReady",
+      "Examine container logs and namespace events for NodeNotReady",
+      "Apply remediation or scaling adjustment for NodeNotReady"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-071",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in corednsfailure-1: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-072",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in corednsfailure-2: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-073",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in corednsfailure-3: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-074",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in corednsfailure-4: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-075",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in corednsfailure-5: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-076",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in corednsfailure-6: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-077",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in corednsfailure-7: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-078",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in corednsfailure-8: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-079",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in corednsfailure-9: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-080",
+    "category": "CoreDNSFailure",
+    "incident_description": "Cluster DNS resolution failure or Corefile syntax error (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in corednsfailure-10: Cluster DNS resolution failure or Corefile syntax error. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "logs",
+      "kube-system",
+      "coredns",
+      "configmap",
+      "describe"
+    ],
+    "expected_root_cause": "Root cause related to CoreDNSFailure: Cluster DNS resolution failure or Corefile syntax error",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for CoreDNSFailure",
+      "Examine container logs and namespace events for CoreDNSFailure",
+      "Apply remediation or scaling adjustment for CoreDNSFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-081",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in ingress502-1: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-082",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in ingress502-2: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-083",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in ingress502-3: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-084",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in ingress502-4: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-085",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in ingress502-5: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-086",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in ingress502-6: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-087",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in ingress502-7: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-088",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in ingress502-8: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-089",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in ingress502-9: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-090",
+    "category": "Ingress502",
+    "incident_description": "Ingress controller cannot reach backend pods or endpoints empty (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in ingress502-10: Ingress controller cannot reach backend pods or endpoints empty. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "endpoints",
+      "describe",
+      "ingress",
+      "service"
+    ],
+    "expected_root_cause": "Root cause related to Ingress502: Ingress controller cannot reach backend pods or endpoints empty",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for Ingress502",
+      "Examine container logs and namespace events for Ingress502",
+      "Apply remediation or scaling adjustment for Ingress502"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-091",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in serviceselectormismatch-1: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-092",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in serviceselectormismatch-2: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-093",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in serviceselectormismatch-3: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-094",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in serviceselectormismatch-4: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-095",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in serviceselectormismatch-5: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-096",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in serviceselectormismatch-6: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-097",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in serviceselectormismatch-7: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-098",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in serviceselectormismatch-8: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-099",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in serviceselectormismatch-9: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-100",
+    "category": "ServiceSelectorMismatch",
+    "incident_description": "Service selector labels do not match pod deployment labels (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in serviceselectormismatch-10: Service selector labels do not match pod deployment labels. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "pods",
+      "describe",
+      "service",
+      "labels"
+    ],
+    "expected_root_cause": "Root cause related to ServiceSelectorMismatch: Service selector labels do not match pod deployment labels",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for ServiceSelectorMismatch",
+      "Examine container logs and namespace events for ServiceSelectorMismatch",
+      "Apply remediation or scaling adjustment for ServiceSelectorMismatch"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-101",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in networkpolicyblocked-1: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-102",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in networkpolicyblocked-2: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-103",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in networkpolicyblocked-3: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-104",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in networkpolicyblocked-4: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-105",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in networkpolicyblocked-5: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-106",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in networkpolicyblocked-6: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-107",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in networkpolicyblocked-7: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-108",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in networkpolicyblocked-8: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-109",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in networkpolicyblocked-9: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-110",
+    "category": "NetworkPolicyBlocked",
+    "incident_description": "Default deny policy blocking ingress or egress traffic (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in networkpolicyblocked-10: Default deny policy blocking ingress or egress traffic. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "networkpolicy",
+      "describe",
+      "ingress",
+      "egress"
+    ],
+    "expected_root_cause": "Root cause related to NetworkPolicyBlocked: Default deny policy blocking ingress or egress traffic",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for NetworkPolicyBlocked",
+      "Examine container logs and namespace events for NetworkPolicyBlocked",
+      "Apply remediation or scaling adjustment for NetworkPolicyBlocked"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-111",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in hpanometrics-1: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-112",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in hpanometrics-2: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-113",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in hpanometrics-3: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-114",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in hpanometrics-4: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-115",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in hpanometrics-5: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-116",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in hpanometrics-6: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-117",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in hpanometrics-7: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-118",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in hpanometrics-8: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-119",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in hpanometrics-9: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-120",
+    "category": "HPANoMetrics",
+    "incident_description": "HorizontalPodAutoscaler unable to retrieve metrics from metrics-server (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in hpanometrics-10: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "hpa",
+      "describe",
+      "metrics-server",
+      "top"
+    ],
+    "expected_root_cause": "Root cause related to HPANoMetrics: HorizontalPodAutoscaler unable to retrieve metrics from metrics-server",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for HPANoMetrics",
+      "Examine container logs and namespace events for HPANoMetrics",
+      "Apply remediation or scaling adjustment for HPANoMetrics"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-121",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in rbacforbidden-1: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-122",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in rbacforbidden-2: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-123",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in rbacforbidden-3: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-124",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in rbacforbidden-4: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-125",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in rbacforbidden-5: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-126",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in rbacforbidden-6: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-127",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in rbacforbidden-7: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-128",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in rbacforbidden-8: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-129",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in rbacforbidden-9: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-130",
+    "category": "RBACForbidden",
+    "incident_description": "ServiceAccount lacks ClusterRole/Role permissions for API resource (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in rbacforbidden-10: ServiceAccount lacks ClusterRole/Role permissions for API resource. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "auth",
+      "can-i",
+      "describe",
+      "rolebinding",
+      "clusterrole"
+    ],
+    "expected_root_cause": "Root cause related to RBACForbidden: ServiceAccount lacks ClusterRole/Role permissions for API resource",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for RBACForbidden",
+      "Examine container logs and namespace events for RBACForbidden",
+      "Apply remediation or scaling adjustment for RBACForbidden"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-131",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in jobbackofflimit-1: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-132",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in jobbackofflimit-2: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-133",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in jobbackofflimit-3: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-134",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in jobbackofflimit-4: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-135",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in jobbackofflimit-5: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-136",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in jobbackofflimit-6: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-137",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in jobbackofflimit-7: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-138",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in jobbackofflimit-8: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-139",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in jobbackofflimit-9: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-140",
+    "category": "JobBackoffLimit",
+    "incident_description": "Batch job pods failed repeatedly reaching max retries (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in jobbackofflimit-10: Batch job pods failed repeatedly reaching max retries. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "describe",
+      "job",
+      "logs",
+      "pods",
+      "failed"
+    ],
+    "expected_root_cause": "Root cause related to JobBackoffLimit: Batch job pods failed repeatedly reaching max retries",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for JobBackoffLimit",
+      "Examine container logs and namespace events for JobBackoffLimit",
+      "Apply remediation or scaling adjustment for JobBackoffLimit"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-141",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #1 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in webhookfailure-1: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:01Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-142",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #2 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in webhookfailure-2: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:02Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-143",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #3 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in webhookfailure-3: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:03Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-144",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #4 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in webhookfailure-4: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:04Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-145",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #5 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in webhookfailure-5: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:05Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-146",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #6 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in webhookfailure-6: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:06Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-147",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #7 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-3",
+    "raw_logs": "Error in webhookfailure-7: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:07Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-148",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #8 in cluster pool 2)",
+    "cluster_context": "gke-prod-cluster-zone-0",
+    "raw_logs": "Error in webhookfailure-8: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:08Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-149",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #9 in cluster pool 0)",
+    "cluster_context": "gke-prod-cluster-zone-1",
+    "raw_logs": "Error in webhookfailure-9: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:09Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  },
+  {
+    "scenario_id": "SCENARIO-150",
+    "category": "WebhookFailure",
+    "incident_description": "Validating or Mutating webhook unreachable or timeout (Variant #10 in cluster pool 1)",
+    "cluster_context": "gke-prod-cluster-zone-2",
+    "raw_logs": "Error in webhookfailure-10: Validating or Mutating webhook unreachable or timeout. System logs indicate anomaly at timestamp 2026-08-21T10:00:10Z.",
+    "mandatory_debugging_keywords": [
+      "get",
+      "validatingwebhookconfigurations",
+      "describe",
+      "logs",
+      "caBundle"
+    ],
+    "expected_root_cause": "Root cause related to WebhookFailure: Validating or Mutating webhook unreachable or timeout",
+    "ground_truth_steps": [
+      "Inspect resource state using kubectl get and describe for WebhookFailure",
+      "Examine container logs and namespace events for WebhookFailure",
+      "Apply remediation or scaling adjustment for WebhookFailure"
+    ]
+  }
+]

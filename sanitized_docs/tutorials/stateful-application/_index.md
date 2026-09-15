@@ -1,2 +1,0 @@
-# Stateful Applications
-
