@@ -10,15 +10,15 @@ Implements the Model Context Protocol (MCP) server specified in `design.md` (§3
 """
 
 import os
-import sys
 import logging
 import argparse
-from pathlib import Path
 from typing import Dict, Any, Optional
 
 from google.auth import default
 from google.cloud import discoveryengine_v1beta
 from mcp.server.fastmcp import FastMCP
+
+from src.retriever import HybridChunkRetriever, resolve_chunks_jsonl_path
 
 logger = logging.getLogger("mcp_k8s_docs_server")
 
@@ -35,11 +35,6 @@ BRANCH_DOCUMENTS_PREFIX = (
     f"projects/{PROJECT_ID}/locations/{LOCATION}/collections/default_collection/"
     f"dataStores/{DATASTORE_ID}/branches/0/documents"
 )
-
-# Path to the 13,894-chunk artifact for local hybrid index fallback
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-PIPELINE_DIR = REPO_ROOT / "multi_agent" / "data_pipeline"
-CHUNKS_JSONL_PATH = PIPELINE_DIR / "artifacts" / "k8s_chunks_custom.jsonl"
 
 # Initialize FastMCP Server instance
 mcp_server = FastMCP(
@@ -60,8 +55,7 @@ _search_client_cls = None
 _doc_client: Optional[discoveryengine_v1beta.DocumentServiceAsyncClient] = None
 _doc_client_cls = None
 
-_hybrid_retriever = None
-_local_chunk_map: Dict[str, Dict[str, Any]] = {}
+_hybrid_retriever: Optional[HybridChunkRetriever] = None
 
 
 def _get_gcp_credentials():
@@ -94,17 +88,16 @@ def _get_doc_client() -> discoveryengine_v1beta.DocumentServiceAsyncClient:
     return _doc_client
 
 
-def _get_local_hybrid_retriever():
-    """Lazily loads the local 13,894-chunk HybridChunkRetriever once."""
+def _get_local_hybrid_retriever() -> Optional[HybridChunkRetriever]:
+    """Lazily loads the internal HybridChunkRetriever singleton once if local chunks file is available."""
     global _hybrid_retriever
-    if _hybrid_retriever is None and CHUNKS_JSONL_PATH.exists():
-        try:
-            if str(PIPELINE_DIR) not in sys.path:
-                sys.path.insert(0, str(PIPELINE_DIR))
-            from evaluate_chunk_quality import HybridChunkRetriever
-            _hybrid_retriever = HybridChunkRetriever(CHUNKS_JSONL_PATH)
-        except Exception as exc:
-            logger.warning(f"Failed to load local HybridChunkRetriever: {exc}")
+    if _hybrid_retriever is None:
+        jsonl_path = resolve_chunks_jsonl_path()
+        if jsonl_path is not None:
+            try:
+                _hybrid_retriever = HybridChunkRetriever(jsonl_path)
+            except Exception as exc:
+                logger.warning(f"Failed to initialize HybridChunkRetriever from {jsonl_path}: {exc}")
     return _hybrid_retriever
 
 
