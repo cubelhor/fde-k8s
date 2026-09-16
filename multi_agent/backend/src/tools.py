@@ -1,12 +1,13 @@
 """Async Tools for the Kubernetes Troubleshooting Copilot.
 
 Integrates the MCP Server (`mcp-k8s-docs-server`) and Vertex AI Search
-(`k8s-custom-chunks-store`) for authoritative documentation retrieval.
+(`k8s-custom-chunks-store`) for authoritative documentation retrieval
+using persistent gRPC client singletons.
 """
 
 import os
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from google.cloud import discoveryengine_v1beta
 from google.auth import default
@@ -19,8 +20,30 @@ PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
 LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 DATASTORE_ID = os.getenv("DISCOVERY_ENGINE_DATASTORE_ID", "k8s-custom-chunks-store")
 
+SERVING_CONFIG_PATH = (
+    f"projects/{PROJECT_ID}/locations/global/collections/default_collection/"
+    f"dataStores/{DATASTORE_ID}/servingConfigs/default_search"
+)
+
+# Persistent gRPC client singleton to avoid per-request channel negotiation
+_gcp_credentials = None
+_search_client: Optional[discoveryengine_v1beta.SearchServiceAsyncClient] = None
+_search_client_cls = None
+
 # Tracks the most recent documentation chunks retrieved via MCP / Vertex AI Search
 _recent_retrieved_chunks: List[Dict[str, Any]] = []
+
+
+def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
+    """Returns a persistent SearchServiceAsyncClient singleton (re-instantiates only if class is mocked in tests)."""
+    global _gcp_credentials, _search_client, _search_client_cls
+    current_cls = discoveryengine_v1beta.SearchServiceAsyncClient
+    if _search_client is None or _search_client_cls is not current_cls:
+        if _gcp_credentials is None:
+            _gcp_credentials, _ = default(quota_project_id=PROJECT_ID)
+        _search_client = current_cls(credentials=_gcp_credentials)
+        _search_client_cls = current_cls
+    return _search_client
 
 
 def get_and_clear_recent_chunks() -> List[Dict[str, Any]]:
@@ -42,15 +65,10 @@ async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
     """
     global _recent_retrieved_chunks
     try:
-        creds, _ = default(quota_project_id=PROJECT_ID)
-        client = discoveryengine_v1beta.SearchServiceAsyncClient(credentials=creds)
-        serving_config = (
-            f"projects/{PROJECT_ID}/locations/global/collections/default_collection/"
-            f"dataStores/{DATASTORE_ID}/servingConfigs/default_search"
-        )
+        client = _get_search_client()
 
         req = discoveryengine_v1beta.SearchRequest(
-            serving_config=serving_config,
+            serving_config=SERVING_CONFIG_PATH,
             query=query,
             page_size=3,
             content_search_spec=discoveryengine_v1beta.SearchRequest.ContentSearchSpec(
@@ -108,11 +126,10 @@ async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
         retriever = _get_local_hybrid_retriever()
         if retriever is not None:
             local_hits = retriever.search(query, top_k=3)
-            chunk_map = {c.get("id", c.get("_id", "")): c for c in retriever.chunks}
             results = []
             for h in local_hits:
                 cid = h["id"]
-                full_chk = chunk_map.get(cid, {})
+                full_chk = retriever.get_by_id(cid) or {}
                 url = full_chk.get("url") or full_chk.get("uri") or "https://kubernetes.io/docs/tasks/debug/"
                 bcrumb = h.get("breadcrumb") or full_chk.get("title") or f"Kubernetes Troubleshooting Guide for {query}"
                 content = h.get("content", "")

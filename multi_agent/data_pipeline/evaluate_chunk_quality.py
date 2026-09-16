@@ -368,6 +368,7 @@ class HybridChunkRetriever:
 
     def __init__(self, jsonl_path: Path):
         self.chunks: List[Dict[str, Any]] = []
+        self.chunk_map: Dict[str, Dict[str, Any]] = {}
         self.df: Dict[str, int] = {}
         self.total_docs: int = 0
         self.doc_vectors: List[Tuple[Dict[str, float], float]] = []
@@ -379,12 +380,24 @@ class HybridChunkRetriever:
             with open(jsonl_path, "r", encoding="utf-8") as f:
                 for line in f:
                     if line.strip():
-                        self.chunks.append(json.loads(line))
+                        chk = json.loads(line)
+                        self.chunks.append(chk)
+                        cid = chk.get("id") or chk.get("_id") or chk.get("chunk_id")
+                        if cid:
+                            self.chunk_map[cid] = chk
         elif ADMISSION_JSON.exists():
             with open(ADMISSION_JSON, "r", encoding="utf-8") as f:
                 self.chunks = json.load(f)
+                for chk in self.chunks:
+                    cid = chk.get("id") or chk.get("_id") or chk.get("chunk_id")
+                    if cid:
+                        self.chunk_map[cid] = chk
 
         self.total_docs = len(self.chunks)
+
+    def get_by_id(self, chunk_id: str) -> Optional[Dict[str, Any]]:
+        """O(1) hash map lookup for a specific chunk by its deterministic ID."""
+        return self.chunk_map.get(chunk_id)
 
     @staticmethod
     def _stem(word: str) -> str:
