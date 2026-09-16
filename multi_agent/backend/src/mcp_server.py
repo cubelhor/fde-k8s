@@ -187,26 +187,83 @@ async def mcp_search_kubernetes_documentation(query: str, top_k: int = 3) -> Dic
     return await query_vertex_ai_search(query=query, top_k=top_k)
 
 
+async def fetch_chunk_by_id_from_vertex(chunk_id: str) -> Dict[str, Any]:
+    """Fetches a chunk by its deterministic ID from Vertex AI Search first, falling back to local index only if offline."""
+    try:
+        from google.cloud import discoveryengine_v1beta
+        from google.auth import default
+
+        creds, _ = default(quota_project_id=PROJECT_ID)
+        doc_client = discoveryengine_v1beta.DocumentServiceAsyncClient(credentials=creds)
+        doc_name = (
+            f"projects/{PROJECT_ID}/locations/{LOCATION}/collections/default_collection/"
+            f"dataStores/{DATASTORE_ID}/branches/0/documents/{chunk_id}"
+        )
+
+        doc = await doc_client.get_document(
+            request=discoveryengine_v1beta.GetDocumentRequest(name=doc_name)
+        )
+        struct = dict(doc.struct_data) if getattr(doc, "struct_data", None) else {}
+        derived = dict(doc.derived_struct_data) if getattr(doc, "derived_struct_data", None) else {}
+
+        cid = struct.get("id") or struct.get("_id") or doc.id or chunk_id
+        breadcrumb = struct.get("breadcrumb") or struct.get("title") or derived.get("title") or cid
+        url = (
+            struct.get("url")
+            or struct.get("uri")
+            or struct.get("doc_path")
+            or derived.get("link")
+            or "https://kubernetes.io/docs/reference/"
+        )
+        content = struct.get("content", "")
+
+        return {
+            "status": "success",
+            "server": "mcp-k8s-docs-server",
+            "datastore": DATASTORE_ID,
+            "source_engine": "vertex_ai_search",
+            "chunk_id": cid,
+            "title": breadcrumb,
+            "breadcrumb": breadcrumb,
+            "url": url,
+            "content": content,
+            "has_code_block": bool(struct.get("has_code_block", False)),
+        }
+    except Exception as exc:
+        logger.warning(
+            f"Vertex AI Search DocumentService lookup for '{chunk_id}' failed ({exc}); checking local fallback."
+        )
+        retriever = _get_local_hybrid_retriever()
+        if retriever is not None:
+            for chk in retriever.chunks:
+                cid = chk.get("id") or chk.get("_id")
+                if cid == chunk_id:
+                    return {
+                        "status": "fallback",
+                        "server": "mcp-k8s-docs-server",
+                        "datastore": "k8s_chunks_custom.jsonl",
+                        "source_engine": "local_hybrid_custom_chunks",
+                        "chunk_id": cid,
+                        "title": chk.get("breadcrumb") or chk.get("title", ""),
+                        "breadcrumb": chk.get("breadcrumb", ""),
+                        "url": chk.get("url", ""),
+                        "content": chk.get("content", ""),
+                        "has_code_block": bool(chk.get("has_code_block", False)),
+                    }
+        return {
+            "status": "not_found",
+            "server": "mcp-k8s-docs-server",
+            "chunk_id": chunk_id,
+        }
+
+
 @mcp_server.tool(
     name="get_kubernetes_chunk_by_id",
-    description="Retrieve a specific Kubernetes documentation chunk by its deterministic chunk_id.",
+    description="Retrieve a specific Kubernetes documentation chunk from Vertex AI Search by its deterministic chunk_id.",
 )
 async def mcp_get_kubernetes_chunk_by_id(chunk_id: str) -> Dict[str, Any]:
-    """MCP Tool endpoint for fetching a full documentation chunk by ID."""
-    retriever = _get_local_hybrid_retriever()
-    if retriever is not None:
-        for chk in retriever.chunks:
-            cid = chk.get("id") or chk.get("_id")
-            if cid == chunk_id:
-                return {
-                    "status": "success",
-                    "chunk_id": cid,
-                    "breadcrumb": chk.get("breadcrumb", ""),
-                    "url": chk.get("url", ""),
-                    "content": chk.get("content", ""),
-                    "has_code_block": bool(chk.get("has_code_block", False)),
-                }
-    return {"status": "not_found", "chunk_id": chunk_id}
+    """MCP Tool endpoint for fetching a full documentation chunk by ID from Vertex AI Search."""
+    return await fetch_chunk_by_id_from_vertex(chunk_id=chunk_id)
 
 
 if __name__ == "__main__":
