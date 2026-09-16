@@ -29,7 +29,7 @@ opentelemetry-exporter-gcp-trace       # Exports spans to Google Cloud Trace
 
 # --- Data Ingestion & Tooling ---
 python-frontmatter             # Parses and strips Hugo Markdown frontmatter for the GCS ingestion pipeline
-mcp                            # Model Context Protocol SDK (for connecting mcp-k8s-docs-server)
+mcp>=1.2.0,<2.0.0              # Anthropic Model Context Protocol SDK with FastMCP support
 
 # --- Testing & Evaluation Framework ---
 pytest>=8.2.0                  # Test runner

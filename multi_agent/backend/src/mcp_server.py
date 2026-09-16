@@ -15,7 +15,7 @@ import argparse
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-from mcp.server import MCPServer
+from mcp.server.fastmcp import FastMCP
 
 logger = logging.getLogger("mcp_k8s_docs_server")
 
@@ -28,8 +28,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 PIPELINE_DIR = REPO_ROOT / "multi_agent" / "data_pipeline"
 CHUNKS_JSONL_PATH = PIPELINE_DIR / "artifacts" / "k8s_chunks_custom.jsonl"
 
-# Initialize MCP Server instance
-mcp_server = MCPServer(
+# Initialize FastMCP Server instance
+mcp_server = FastMCP(
     name="mcp-k8s-docs-server",
     instructions=(
         "Authoritative Kubernetes Documentation MCP Server backed by Google Cloud "
