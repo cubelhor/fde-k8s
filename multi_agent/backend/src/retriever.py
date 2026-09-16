@@ -44,13 +44,20 @@ K8S_SEMANTIC_EXPANSIONS: Dict[str, List[str]] = {
 }
 
 
-def resolve_chunks_jsonl_path() -> Optional[Path]:
-    """Resolves the path to `k8s_chunks_custom.jsonl` safely across Docker and local environments.
+GCS_BUCKET_NAME = os.getenv("K8S_DOCS_GCS_BUCKET", "k8s-docs-fde-k8s-sandbox-dev-505119")
+GCS_BLOB_PATH = os.getenv("K8S_DOCS_GCS_BLOB", "custom_chunks/k8s_chunks_custom.jsonl")
+
+
+def resolve_chunks_jsonl_path(prefer_gcs: bool = False) -> Optional[Path]:
+    """Resolves the path to `k8s_chunks_custom.jsonl` across Cloud Run, GCS FUSE, and local environments.
 
     Resolution order:
-    1. `K8S_CHUNKS_JSONL_PATH` environment variable (recommended for containerized deployments).
-    2. Bundled backend data directory (`<backend_root>/data/k8s_chunks_custom.jsonl`).
-    3. Monorepo pipeline artifact (`<repo_root>/multi_agent/data_pipeline/artifacts/k8s_chunks_custom.jsonl`).
+    1. `K8S_CHUNKS_JSONL_PATH` environment variable (or Cloud Run GCS FUSE mount `/mnt/gcs/...`).
+    2. If `prefer_gcs=True` (or if local files are absent on Cloud Run), downloads directly from
+       `gs://<K8S_DOCS_GCS_BUCKET>/custom_chunks/k8s_chunks_custom.jsonl` into Cloud Run's
+       in-memory `/tmp/k8s_chunks_custom.jsonl` (`tmpfs`) and caches it for localized retrieval.
+    3. Bundled backend data directory (`<backend_root>/data/k8s_chunks_custom.jsonl`).
+    4. Monorepo pipeline artifact (`<repo_root>/multi_agent/data_pipeline/artifacts/k8s_chunks_custom.jsonl`).
     """
     env_path = os.getenv("K8S_CHUNKS_JSONL_PATH")
     if env_path:
@@ -58,14 +65,53 @@ def resolve_chunks_jsonl_path() -> Optional[Path]:
         if candidate.exists():
             return candidate
 
+    # Check Cloud Run Gen2 GCS FUSE mount path
+    gcs_fuse_candidate = Path("/mnt/gcs") / GCS_BLOB_PATH
+    if gcs_fuse_candidate.exists():
+        return gcs_fuse_candidate
+
+    tmp_cache_path = Path("/tmp/k8s_chunks_custom.jsonl")
+    if prefer_gcs and tmp_cache_path.exists():
+        return tmp_cache_path
+
+    if not prefer_gcs:
+        backend_root = Path(__file__).resolve().parent.parent
+        candidates = [
+            backend_root / "data" / "k8s_chunks_custom.jsonl",
+            backend_root.parent / "data_pipeline" / "artifacts" / "k8s_chunks_custom.jsonl",
+            tmp_cache_path,
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+
+    # Direct GCS Bucket retrieval into Cloud Run in-memory /tmp cache
+    try:
+        from google.cloud import storage
+        from src.auth import get_gcp_credentials
+
+        creds, project = get_gcp_credentials()
+        storage_client = storage.Client(project=project, credentials=creds)
+        bucket = storage_client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(GCS_BLOB_PATH)
+        tmp_cache_path.parent.mkdir(parents=True, exist_ok=True)
+        blob.download_to_filename(str(tmp_cache_path))
+        logger.info(
+            f"Downloaded gs://{GCS_BUCKET_NAME}/{GCS_BLOB_PATH} to {tmp_cache_path} for localized MCP retrieval."
+        )
+        return tmp_cache_path
+    except Exception as exc:
+        logger.warning(f"Direct GCS bucket download failed (gs://{GCS_BUCKET_NAME}/{GCS_BLOB_PATH}): {exc}")
+
+    # Final check on local candidates if prefer_gcs failed
     backend_root = Path(__file__).resolve().parent.parent
-    candidates = [
+    for candidate in [
         backend_root / "data" / "k8s_chunks_custom.jsonl",
         backend_root.parent / "data_pipeline" / "artifacts" / "k8s_chunks_custom.jsonl",
-    ]
-    for candidate in candidates:
+    ]:
         if candidate.exists():
             return candidate
+
     return None
 
 

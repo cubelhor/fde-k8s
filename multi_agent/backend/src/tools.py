@@ -113,6 +113,8 @@ async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
             }
             results.append(chunk_entry)
             _recent_retrieved_chunks.append(chunk_entry)
+            if len(results) >= 3:
+                break
 
         return {
             "status": "success",

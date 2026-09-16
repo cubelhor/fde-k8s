@@ -70,11 +70,11 @@ def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
     return _search_client
 
 
-def _get_local_hybrid_retriever() -> Optional[HybridChunkRetriever]:
-    """Lazily loads the internal HybridChunkRetriever singleton once if local chunks file is available."""
+def _get_local_hybrid_retriever(prefer_gcs: bool = False) -> Optional[HybridChunkRetriever]:
+    """Lazily loads the internal HybridChunkRetriever singleton from local disk, Cloud Run GCS mount, or direct GCS bucket download."""
     global _hybrid_retriever
     if _hybrid_retriever is None:
-        jsonl_path = resolve_chunks_jsonl_path()
+        jsonl_path = resolve_chunks_jsonl_path(prefer_gcs=prefer_gcs)
         if jsonl_path is not None:
             try:
                 _hybrid_retriever = HybridChunkRetriever(jsonl_path)
@@ -88,7 +88,38 @@ def _get_local_hybrid_retriever() -> Optional[HybridChunkRetriever]:
 # ============================================================================
 
 async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
-    """Queries Vertex AI Search (`k8s-custom-chunks-store`) reusing the singleton gRPC channel."""
+    """Queries Vertex AI Search (`k8s-custom-chunks-store`) or performs localized GCS retrieval if `MCP_RETRIEVAL_MODE=gcs`."""
+    retrieval_mode = os.getenv("MCP_RETRIEVAL_MODE", "vertex").lower()
+    if retrieval_mode == "gcs":
+        retriever = _get_local_hybrid_retriever(prefer_gcs=True)
+        if retriever is not None:
+            local_hits = retriever.search(query, top_k=top_k)
+            results = []
+            for h in local_hits:
+                cid = h["id"]
+                full_chk = retriever.get_by_id(cid) or {}
+                url = full_chk.get("url") or full_chk.get("uri") or "https://kubernetes.io/docs/reference/"
+                bcrumb = h.get("breadcrumb") or full_chk.get("title") or cid
+                content = h.get("content", "")
+                results.append({
+                    "chunk_id": cid,
+                    "title": bcrumb,
+                    "breadcrumb": bcrumb,
+                    "url": url,
+                    "doc_path": url,
+                    "content": content,
+                    "snippet": content[:400],
+                    "has_code_block": bool(full_chk.get("has_code_block", False)),
+                    "source_engine": "gcs_localized_hybrid_retriever",
+                })
+            return {
+                "status": "success",
+                "server": "mcp-k8s-docs-server",
+                "datastore": f"gs://{os.getenv('K8S_DOCS_GCS_BUCKET', 'k8s-docs-fde-k8s-sandbox-dev-505119')}/custom_chunks/k8s_chunks_custom.jsonl",
+                "query": query,
+                "results": results,
+            }
+
     try:
         client = _get_search_client()
 
@@ -135,6 +166,8 @@ async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
                 "has_code_block": bool(struct.get("has_code_block", False)),
                 "source_engine": "vertex_ai_search",
             })
+            if len(results) >= top_k:
+                break
 
         return {
             "status": "success",

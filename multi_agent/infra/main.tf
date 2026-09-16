@@ -63,6 +63,12 @@ resource "google_project_iam_member" "secret_manager_accessor" {
   member  = "serviceAccount:${google_service_account.copilot_backend.email}"
 }
 
+resource "google_project_iam_member" "gcs_chunks_viewer" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.copilot_backend.email}"
+}
+
 # --- Cloud Run Backend Service ---
 resource "google_cloud_run_v2_service" "backend" {
   name     = var.service_name
@@ -94,6 +100,14 @@ resource "google_cloud_run_v2_service" "backend" {
       env {
         name  = "GOOGLE_CLOUD_LOCATION"
         value = var.region
+      }
+      env {
+        name  = "K8S_DOCS_GCS_BUCKET"
+        value = "k8s-docs-${var.project_id}"
+      }
+      env {
+        name  = "MCP_RETRIEVAL_MODE"
+        value = "vertex"
       }
       env {
         name  = "SPIFFE_TRUST_DOMAIN"
