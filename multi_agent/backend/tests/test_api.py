@@ -151,3 +151,32 @@ def test_feedback_endpoint():
     data = res.json()
     assert data["success"] is True
     assert "inc-test-8899" in data["message"]
+
+
+def test_mcp_server_status_endpoint():
+    """Verify MCP Server (mcp-k8s-docs-server) status and tool registration."""
+    client = TestClient(app)
+    res = client.get("/api/v1/mcp/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["server_name"] == "mcp-k8s-docs-server"
+    assert "stdio" in data["transports"]
+    assert "sse" in data["transports"]
+    tool_names = [t["name"] for t in data["tools"]]
+    assert "search_kubernetes_documentation" in tool_names
+    assert "get_kubernetes_chunk_by_id" in tool_names
+
+
+def test_mcp_server_search_endpoint():
+    """Verify MCP Server search endpoint returns real chunks with breadcrumbs and URLs."""
+    client = TestClient(app)
+    res = client.get("/api/v1/mcp/search", params={"query": "CrashLoopBackOff container restartPolicy", "top_k": 2})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["server"] == "mcp-k8s-docs-server"
+    assert len(data["results"]) >= 1
+    first_chunk = data["results"][0]
+    assert "chunk_id" in first_chunk
+    assert "breadcrumb" in first_chunk
+    assert "url" in first_chunk
+    assert first_chunk["url"].startswith("https://kubernetes.io/")

@@ -22,7 +22,7 @@ from google.adk.sessions import InMemorySessionService
 
 from src.models import IncidentState, TroubleshootingPlan, KubectlCommand
 from src.guardrails import SafetyGuardian
-from src.tools import search_kubernetes_documentation
+from src.tools import search_kubernetes_documentation, get_and_clear_recent_chunks
 
 logger = logging.getLogger("k8s_agents")
 
@@ -173,10 +173,13 @@ class PlannerAgent:
         self.location = location or os.getenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 
     async def plan(self, state: IncidentState) -> IncidentState:
-        """Analyze crash logs, execute ADK tool loop (Vertex AI Search), and populate state.planner_checklist."""
+        """Analyze crash logs, execute ADK tool loop (mcp-k8s-docs-server / Vertex AI Search), and populate state."""
         session_id = state.incident_id or f"session-{uuid.uuid4().hex[:8]}"
         user_id = "sre-agent"
         app_name = "k8s_troubleshooting_copilot"
+
+        # Clear any stale buffer before running the Planner turn
+        get_and_clear_recent_chunks()
 
         # Ensure session exists in session service
         try:
@@ -219,10 +222,29 @@ class PlannerAgent:
 
         full_output = "".join(accumulated_text).strip()
 
+        # Collect chunks retrieved via mcp-k8s-docs-server during the ADK turn
+        retrieved_chunks = get_and_clear_recent_chunks()
+        if not retrieved_chunks:
+            # Ensure MCP Vertex AI Search retrieval runs even if the runner was mocked or bypassed tool invocation
+            mcp_res = await search_kubernetes_documentation(state.raw_logs)
+            retrieved_chunks = mcp_res.get("results", [])
+            get_and_clear_recent_chunks()
+
+        state.retrieved_docs = retrieved_chunks
+        citations = []
+        for doc in retrieved_chunks:
+            url = doc.get("url") or doc.get("doc_path")
+            bcrumb = doc.get("breadcrumb") or doc.get("title")
+            if url:
+                citation_str = f"{bcrumb} ({url})" if bcrumb and bcrumb not in url else url
+                if citation_str not in citations:
+                    citations.append(citation_str)
+        state.source_citations = citations
+
         checklist_items = [
             line.strip() for line in full_output.split("\n") if line.strip()
         ]
-        
+
         state.planner_checklist = checklist_items if checklist_items else ([full_output] if full_output else [
             f"1. Check pod status and events for: {state.raw_logs[:50]}...",
             "2. Inspect resource constraints and container exit codes.",
@@ -230,6 +252,17 @@ class PlannerAgent:
         ])
         state.status = "PLANNING_COMPLETED"
         return state
+
+    async def generate_plan(self, incident_query: str, cluster_context: Optional[str] = None) -> Dict[str, Any]:
+        """Helper method for direct E2E integration tests."""
+        state = IncidentState(raw_logs=incident_query, cluster_context=cluster_context)
+        state = await self.plan(state)
+        return {
+            "plan": "\n".join(state.planner_checklist or []),
+            "retrieved_docs": state.retrieved_docs or [],
+            "source_citations": state.source_citations or [],
+            "state": state,
+        }
 
 
 class ExecutorAgent:
@@ -257,8 +290,24 @@ class ExecutorAgent:
                 location=self.location
             )
 
-    def generate_commands(self, strategy_text: str) -> TroubleshootingPlan:
+    def generate_commands(
+        self,
+        strategy_text: Optional[str] = None,
+        *,
+        incident_query: Optional[str] = None,
+        planner_output: Optional[str] = None,
+        retrieved_docs: Optional[List[Dict[str, Any]]] = None,
+    ) -> TroubleshootingPlan:
         """Translate abstract troubleshooting strategy into structured, safety-verified kubectl commands."""
+        if strategy_text is None:
+            docs_context = ""
+            if retrieved_docs:
+                docs_context = "\n\nRetrieved Kubernetes Documentation Context (via mcp-k8s-docs-server):\n" + "\n".join(
+                    f"- [{d.get('breadcrumb', '')}] ({d.get('url', '')}): {d.get('snippet', '')[:300]}"
+                    for d in retrieved_docs
+                )
+            strategy_text = f"Incident: {incident_query or ''}\nPlanner Checklist:\n{planner_output or ''}{docs_context}"
+
         config = types.GenerateContentConfig(
             system_instruction=self.adk_agent.instruction,
             response_mime_type="application/json",
@@ -289,9 +338,20 @@ class ExecutorAgent:
     async def execute(self, state: IncidentState) -> IncidentState:
         """Translate checklist steps into structured KubectlCommand objects on IncidentState."""
         strategy_input = "\n".join(state.planner_checklist) if state.planner_checklist else state.raw_logs
+        if state.retrieved_docs:
+            docs_summary = "\n\nGrounded Documentation Citations (mcp-k8s-docs-server):\n" + "\n".join(
+                f"- {d.get('breadcrumb', '')} ({d.get('url', '')})"
+                for d in state.retrieved_docs
+            )
+            strategy_input = f"{strategy_input}{docs_summary}"
+
         plan = self.generate_commands(strategy_input)
-        
+
         state.raw_command = [cmd.model_copy() for cmd in plan.steps]
         state.final_validated_command = plan.steps
+        if plan.problem_summary:
+            state.metadata["problem_summary"] = plan.problem_summary
+        if not state.source_citations and plan.source_citations:
+            state.source_citations = plan.source_citations
         state.status = "EXECUTED"
         return state

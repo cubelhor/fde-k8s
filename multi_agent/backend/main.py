@@ -118,6 +118,13 @@ app.add_middleware(
 # Auto-instrument FastAPI with OpenTelemetry
 FastAPIInstrumentor.instrument_app(app)
 
+# Mount the MCP Server (`mcp-k8s-docs-server`) SSE transport at /mcp
+try:
+    from src.mcp_server import mcp_server as _k8s_mcp_server
+    app.mount("/mcp", _k8s_mcp_server.sse_app())
+except Exception as mcp_mount_err:
+    logger.warning(f"Could not mount MCP SSE transport: {mcp_mount_err}")
+
 
 # ============================================================================
 # API Endpoints
@@ -193,13 +200,13 @@ async def diagnose_incident(
                 state = await executor.execute(state)
                 logger.info(f"[{incident_id}] Executor completed with {len(state.final_validated_command)} validated commands.")
 
-            # Step 4: Construct Final Troubleshooting Plan
-            plan_summary = (
+            # Step 4: Construct Final Troubleshooting Plan from MCP / Vertex AI Search & Executor output
+            plan_summary = state.metadata.get("problem_summary") or (
                 f"Incident {incident_id} Diagnosis: "
                 f"{state.raw_logs[:120]}..." if len(state.raw_logs) > 120 else state.raw_logs
             )
 
-            citations = [
+            citations = state.source_citations if state.source_citations else [
                 "https://kubernetes.io/docs/tasks/debug/",
                 "https://kubernetes.io/docs/reference/kubectl/",
                 "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
@@ -212,7 +219,7 @@ async def diagnose_incident(
             )
 
             state.status = "COMPLETED"
-            logger.info(f"[{incident_id}] Incident diagnosis successfully completed.")
+            logger.info(f"[{incident_id}] Incident diagnosis successfully completed with {len(citations)} MCP citations.")
 
             return DiagnoseResponse(
                 success=True,
@@ -230,6 +237,30 @@ async def diagnose_incident(
                 state=state,
                 error=f"Diagnosis pipeline error: {str(exc)}"
             )
+
+
+@app.get("/api/v1/mcp/status", tags=["MCP Server"])
+async def mcp_server_status():
+    """Return status and registered tools of the mcp-k8s-docs-server."""
+    from src.mcp_server import mcp_server, DATASTORE_ID
+    tools = await mcp_server.list_tools()
+    return {
+        "server_name": mcp_server.name,
+        "datastore_id": DATASTORE_ID,
+        "transports": ["stdio", "sse"],
+        "sse_endpoint": "/mcp/sse",
+        "tools": [
+            {"name": t.name, "description": t.description}
+            for t in tools
+        ],
+    }
+
+
+@app.get("/api/v1/mcp/search", tags=["MCP Server"])
+async def mcp_server_search(query: str, top_k: int = 3):
+    """Query the mcp-k8s-docs-server directly to inspect retrieved Vertex AI Search chunks."""
+    from src.mcp_server import mcp_search_kubernetes_documentation
+    return await mcp_search_kubernetes_documentation(query=query, top_k=top_k)
 
 
 @app.post(
