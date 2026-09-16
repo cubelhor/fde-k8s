@@ -2,11 +2,11 @@
 
 Implements the Model Context Protocol (MCP) server specified in `design.md` (§3 Agent 1):
 - Server Name: `mcp-k8s-docs-server` (via Anthropic `FastMCP`)
+- Tool: `search_kubernetes_documentation`
 - Transports: `stdio` and `sse` (Server-Sent Events)
-- Backend: Google Cloud Vertex AI Search (`k8s-custom-chunks-store`) with lazy-loaded
-  gRPC client singletons (`SearchServiceAsyncClient` & `DocumentServiceAsyncClient`)
-  to prevent per-request gRPC connection churn, plus automatic fallback to the local
-  13,894-chunk hybrid index (`k8s_chunks_custom.jsonl`).
+- Backend: Google Cloud Vertex AI Search (`k8s-custom-chunks-store`) with a lazy-loaded
+  `SearchServiceAsyncClient` gRPC singleton, plus automatic fallback to the internal
+  13,894-chunk hybrid index (`src.retriever.HybridChunkRetriever`).
 """
 
 import os
@@ -26,14 +26,10 @@ PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
 LOCATION = os.getenv("DISCOVERY_ENGINE_LOCATION", "global")
 DATASTORE_ID = os.getenv("DISCOVERY_ENGINE_DATASTORE_ID", "k8s-custom-chunks-store")
 
-# Pre-formatted Vertex AI Search resource paths
+# Pre-formatted Vertex AI Search serving config path
 SERVING_CONFIG_PATH = (
     f"projects/{PROJECT_ID}/locations/{LOCATION}/collections/default_collection/"
     f"dataStores/{DATASTORE_ID}/servingConfigs/default_search"
-)
-BRANCH_DOCUMENTS_PREFIX = (
-    f"projects/{PROJECT_ID}/locations/{LOCATION}/collections/default_collection/"
-    f"dataStores/{DATASTORE_ID}/branches/0/documents"
 )
 
 # Initialize FastMCP Server instance
@@ -52,9 +48,6 @@ mcp_server = FastMCP(
 _gcp_credentials = None
 _search_client: Optional[discoveryengine_v1beta.SearchServiceAsyncClient] = None
 _search_client_cls = None
-_doc_client: Optional[discoveryengine_v1beta.DocumentServiceAsyncClient] = None
-_doc_client_cls = None
-
 _hybrid_retriever: Optional[HybridChunkRetriever] = None
 
 
@@ -77,17 +70,6 @@ def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
     return _search_client
 
 
-def _get_doc_client() -> discoveryengine_v1beta.DocumentServiceAsyncClient:
-    """Returns a persistent DocumentServiceAsyncClient singleton to reuse gRPC channels across ID lookups."""
-    global _doc_client, _doc_client_cls
-    current_cls = discoveryengine_v1beta.DocumentServiceAsyncClient
-    if _doc_client is None or _doc_client_cls is not current_cls:
-        creds = _get_gcp_credentials()
-        _doc_client = current_cls(credentials=creds)
-        _doc_client_cls = current_cls
-    return _doc_client
-
-
 def _get_local_hybrid_retriever() -> Optional[HybridChunkRetriever]:
     """Lazily loads the internal HybridChunkRetriever singleton once if local chunks file is available."""
     global _hybrid_retriever
@@ -102,7 +84,7 @@ def _get_local_hybrid_retriever() -> Optional[HybridChunkRetriever]:
 
 
 # ============================================================================
-# Core Vertex AI Search Operations
+# Core Vertex AI Search Operation & Registered FastMCP Tool
 # ============================================================================
 
 async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
@@ -212,73 +194,6 @@ async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
         }
 
 
-async def fetch_chunk_by_id_from_vertex(chunk_id: str) -> Dict[str, Any]:
-    """Fetches a chunk by its deterministic ID from Vertex AI Search first using the singleton DocumentServiceAsyncClient."""
-    try:
-        doc_client = _get_doc_client()
-        doc_name = f"{BRANCH_DOCUMENTS_PREFIX}/{chunk_id}"
-
-        doc = await doc_client.get_document(
-            request=discoveryengine_v1beta.GetDocumentRequest(name=doc_name)
-        )
-        struct = dict(doc.struct_data) if getattr(doc, "struct_data", None) else {}
-        derived = dict(doc.derived_struct_data) if getattr(doc, "derived_struct_data", None) else {}
-
-        cid = struct.get("id") or struct.get("_id") or doc.id or chunk_id
-        breadcrumb = struct.get("breadcrumb") or struct.get("title") or derived.get("title") or cid
-        url = (
-            struct.get("url")
-            or struct.get("uri")
-            or struct.get("doc_path")
-            or derived.get("link")
-            or "https://kubernetes.io/docs/reference/"
-        )
-        content = struct.get("content", "")
-
-        return {
-            "status": "success",
-            "server": "mcp-k8s-docs-server",
-            "datastore": DATASTORE_ID,
-            "source_engine": "vertex_ai_search",
-            "chunk_id": cid,
-            "title": breadcrumb,
-            "breadcrumb": breadcrumb,
-            "url": url,
-            "content": content,
-            "has_code_block": bool(struct.get("has_code_block", False)),
-        }
-    except Exception as exc:
-        logger.warning(
-            f"Vertex AI Search DocumentService lookup for '{chunk_id}' failed ({exc}); checking local fallback."
-        )
-        retriever = _get_local_hybrid_retriever()
-        if retriever is not None:
-            chk = retriever.get_by_id(chunk_id)
-            if chk is not None:
-                cid = chk.get("id") or chk.get("_id") or chunk_id
-                return {
-                    "status": "fallback",
-                    "server": "mcp-k8s-docs-server",
-                    "datastore": "k8s_chunks_custom.jsonl",
-                    "source_engine": "local_hybrid_custom_chunks",
-                    "chunk_id": cid,
-                    "title": chk.get("breadcrumb") or chk.get("title", ""),
-                    "breadcrumb": chk.get("breadcrumb", ""),
-                    "url": chk.get("url", ""),
-                    "content": chk.get("content", ""),
-                    "has_code_block": bool(chk.get("has_code_block", False)),
-                }
-        return {
-            "status": "not_found",
-            "server": "mcp-k8s-docs-server",
-            "chunk_id": chunk_id,
-        }
-
-
-# ============================================================================
-# Registered FastMCP Tools
-# ============================================================================
-
 @mcp_server.tool(
     name="search_kubernetes_documentation",
     description=(
@@ -290,15 +205,6 @@ async def fetch_chunk_by_id_from_vertex(chunk_id: str) -> Dict[str, Any]:
 async def mcp_search_kubernetes_documentation(query: str, top_k: int = 3) -> Dict[str, Any]:
     """MCP Tool endpoint for searching Kubernetes documentation."""
     return await query_vertex_ai_search(query=query, top_k=top_k)
-
-
-@mcp_server.tool(
-    name="get_kubernetes_chunk_by_id",
-    description="Retrieve a specific Kubernetes documentation chunk from Vertex AI Search by its deterministic chunk_id.",
-)
-async def mcp_get_kubernetes_chunk_by_id(chunk_id: str) -> Dict[str, Any]:
-    """MCP Tool endpoint for fetching a full documentation chunk by ID from Vertex AI Search."""
-    return await fetch_chunk_by_id_from_vertex(chunk_id=chunk_id)
 
 
 if __name__ == "__main__":

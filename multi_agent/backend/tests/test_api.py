@@ -163,8 +163,7 @@ def test_mcp_server_status_endpoint():
     assert "stdio" in data["transports"]
     assert "sse" in data["transports"]
     tool_names = [t["name"] for t in data["tools"]]
-    assert "search_kubernetes_documentation" in tool_names
-    assert "get_kubernetes_chunk_by_id" in tool_names
+    assert tool_names == ["search_kubernetes_documentation"]
 
 
 def test_mcp_server_search_endpoint():
@@ -180,34 +179,3 @@ def test_mcp_server_search_endpoint():
     assert "breadcrumb" in first_chunk
     assert "url" in first_chunk
     assert first_chunk["url"].startswith("https://kubernetes.io/")
-
-
-@pytest.mark.asyncio
-async def test_mcp_get_chunk_by_id_vertex_primary():
-    """Verify mcp_get_kubernetes_chunk_by_id queries Vertex AI Search DocumentServiceAsyncClient first."""
-    from unittest.mock import patch
-    from src.mcp_server import mcp_get_kubernetes_chunk_by_id
-
-    mock_doc = MagicMock()
-    mock_doc.id = "concepts_workloads_pods_pod_lifecycle_chunk_012"
-    mock_doc.struct_data = {
-        "_id": "concepts_workloads_pods_pod_lifecycle_chunk_012",
-        "breadcrumb": "Pod Lifecycle > Container restart policy",
-        "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
-        "content": "The spec of a Pod has a restartPolicy field with possible values Always, OnFailure, and Never.",
-        "has_code_block": True,
-    }
-    mock_doc.derived_struct_data = {}
-
-    mock_doc_client = MagicMock()
-    mock_doc_client.get_document = AsyncMock(return_value=mock_doc)
-
-    with patch("google.auth.default", return_value=(MagicMock(), "fde-k8s-sandbox-dev-505119")), \
-         patch("google.cloud.discoveryengine_v1beta.DocumentServiceAsyncClient", return_value=mock_doc_client):
-        res = await mcp_get_kubernetes_chunk_by_id("concepts_workloads_pods_pod_lifecycle_chunk_012")
-        assert res["status"] == "success"
-        assert res["source_engine"] == "vertex_ai_search"
-        assert res["chunk_id"] == "concepts_workloads_pods_pod_lifecycle_chunk_012"
-        assert res["breadcrumb"] == "Pod Lifecycle > Container restart policy"
-        assert res["has_code_block"] is True
-        mock_doc_client.get_document.assert_called_once()
