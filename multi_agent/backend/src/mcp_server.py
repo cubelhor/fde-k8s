@@ -14,10 +14,10 @@ import logging
 import argparse
 from typing import Dict, Any, Optional
 
-from google.auth import default
 from google.cloud import discoveryengine_v1beta
 from mcp.server.fastmcp import FastMCP
 
+from src.auth import get_gcp_credentials, get_identity_metadata, get_secret
 from src.retriever import HybridChunkRetriever, resolve_chunks_jsonl_path
 
 logger = logging.getLogger("mcp_k8s_docs_server")
@@ -52,10 +52,10 @@ _hybrid_retriever: Optional[HybridChunkRetriever] = None
 
 
 def _get_gcp_credentials():
-    """Returns cached Google Cloud Application Default Credentials."""
+    """Returns cached SPIFFE Workload Identity / ADC credentials via src.auth."""
     global _gcp_credentials
     if _gcp_credentials is None:
-        _gcp_credentials, _ = default(quota_project_id=PROJECT_ID)
+        _gcp_credentials, _ = get_gcp_credentials(project_id=PROJECT_ID)
     return _gcp_credentials
 
 

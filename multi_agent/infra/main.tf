@@ -47,6 +47,22 @@ resource "google_project_iam_member" "trace_agent" {
   member  = "serviceAccount:${google_service_account.copilot_backend.email}"
 }
 
+# --- Google Cloud Secret Manager for External Service & Telemetry Collector Keys ---
+resource "google_secret_manager_secret" "telemetry_collector_api_key" {
+  project   = var.project_id
+  secret_id = "telemetry-collector-api-key"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_project_iam_member" "secret_manager_accessor" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.copilot_backend.email}"
+}
+
 # --- Cloud Run Backend Service ---
 resource "google_cloud_run_v2_service" "backend" {
   name     = var.service_name
@@ -78,6 +94,14 @@ resource "google_cloud_run_v2_service" "backend" {
       env {
         name  = "GOOGLE_CLOUD_LOCATION"
         value = var.region
+      }
+      env {
+        name  = "SPIFFE_TRUST_DOMAIN"
+        value = "${var.project_id}.svc.id.goog"
+      }
+      env {
+        name  = "SPIFFE_ID"
+        value = "spiffe://${var.project_id}.svc.id.goog/ns/default/sa/${google_service_account.copilot_backend.account_id}"
       }
     }
   }

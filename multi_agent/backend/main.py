@@ -45,13 +45,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger("k8s_copilot_api")
 
-# Configure Tracer Provider
+from src.auth import get_identity_metadata, get_secret
+
+# Configure Tracer Provider (fetches external telemetry collector API key via GCP Secret Manager if configured)
 tracer_provider = TracerProvider()
 try:
+    telemetry_api_key = get_secret(
+        "telemetry-collector-api-key",
+        default_env_var="TELEMETRY_COLLECTOR_API_KEY",
+    )
     from opentelemetry.exporter.gcp_trace import CloudTraceSpanExporter
     cloud_trace_exporter = CloudTraceSpanExporter()
     tracer_provider.add_span_processor(BatchSpanProcessor(cloud_trace_exporter))
-    logger.info("OpenTelemetry configured with Google Cloud Trace exporter.")
+    logger.info(
+        f"OpenTelemetry configured with Google Cloud Trace exporter "
+        f"(Secret Manager collector key loaded: {bool(telemetry_api_key)})."
+    )
 except Exception as otel_err:
     logger.info(f"Using local OpenTelemetry Tracer: {otel_err}")
 
@@ -241,7 +250,7 @@ async def diagnose_incident(
 
 @app.get("/api/v1/mcp/status", tags=["MCP Server"])
 async def mcp_server_status():
-    """Return status and registered tools of the mcp-k8s-docs-server."""
+    """Return status, SPIFFE identity metadata, and registered tools of the mcp-k8s-docs-server."""
     from src.mcp_server import mcp_server, DATASTORE_ID
     tools = await mcp_server.list_tools()
     return {
@@ -249,6 +258,7 @@ async def mcp_server_status():
         "datastore_id": DATASTORE_ID,
         "transports": ["stdio", "sse"],
         "sse_endpoint": "/mcp/sse",
+        "auth": get_identity_metadata(),
         "tools": [
             {"name": t.name, "description": t.description}
             for t in tools

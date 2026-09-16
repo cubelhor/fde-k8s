@@ -154,7 +154,7 @@ def test_feedback_endpoint():
 
 
 def test_mcp_server_status_endpoint():
-    """Verify MCP Server (mcp-k8s-docs-server) status and tool registration."""
+    """Verify MCP Server (mcp-k8s-docs-server) status, SPIFFE identity metadata, and tool registration."""
     client = TestClient(app)
     res = client.get("/api/v1/mcp/status")
     assert res.status_code == 200
@@ -162,8 +162,37 @@ def test_mcp_server_status_endpoint():
     assert data["server_name"] == "mcp-k8s-docs-server"
     assert "stdio" in data["transports"]
     assert "sse" in data["transports"]
+    assert "auth" in data
+    assert data["auth"]["spiffe_id"].startswith("spiffe://")
+    assert data["auth"]["secret_manager_enabled"] is True
     tool_names = [t["name"] for t in data["tools"]]
     assert tool_names == ["search_kubernetes_documentation"]
+
+
+def test_secret_manager_and_spiffe_auth():
+    """Verify Google Cloud Secret Manager lookup and SPIFFE Workload Identity configuration in src.auth."""
+    from unittest.mock import patch
+    import src.auth as auth_mod
+
+    # Reset cache for test isolation
+    auth_mod._secret_cache.clear()
+    auth_mod._secret_client = None
+
+    mock_secret_response = MagicMock()
+    mock_secret_response.payload.data = b"otel-collector-secret-api-key-999"
+
+    mock_sm_client = MagicMock()
+    mock_sm_client.access_secret_version.return_value = mock_secret_response
+
+    with patch("src.auth._get_secret_manager_client", return_value=mock_sm_client):
+        secret_val = auth_mod.get_secret("telemetry-collector-api-key")
+        assert secret_val == "otel-collector-secret-api-key-999"
+        mock_sm_client.access_secret_version.assert_called_once()
+
+        # Verify subsequent call uses in-memory cache without another RPC call
+        cached_val = auth_mod.get_secret("telemetry-collector-api-key")
+        assert cached_val == "otel-collector-secret-api-key-999"
+        assert mock_sm_client.access_secret_version.call_count == 1
 
 
 def test_mcp_server_search_endpoint():
