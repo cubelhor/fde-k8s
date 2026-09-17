@@ -49,8 +49,10 @@ _K8S_DOMAIN_PATTERN = re.compile(
 
 def load_prompt(filename: str) -> str:
     """Load a versioned system instruction prompt string from `backend/src/prompts/<filename>` using `yaml.safe_load`."""
-    prompt_path = PROMPTS_DIR / filename
-    if not prompt_path.exists():
+    safe_name = os.path.basename(filename)
+    prompts_root = PROMPTS_DIR.resolve()
+    prompt_path = (prompts_root / safe_name).resolve()
+    if prompt_path.parent != prompts_root or not prompt_path.exists():
         raise FileNotFoundError(f"Prompt YAML file not found: {prompt_path}")
 
     with open(prompt_path, "r", encoding="utf-8") as f:

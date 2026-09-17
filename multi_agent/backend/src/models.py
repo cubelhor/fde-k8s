@@ -1,7 +1,7 @@
 """Data models and Pydantic schemas for the Kubernetes Troubleshooting Copilot."""
 
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 
 
 class KubectlCommand(BaseModel):
@@ -37,7 +37,11 @@ class IncidentState(BaseModel):
 
 class DiagnoseRequest(BaseModel):
     """API request payload for diagnosing an incident."""
-    raw_logs: str = Field(..., description="Raw Kubernetes crash logs or issue description")
+    raw_logs: str = Field(
+        ...,
+        validation_alias=AliasChoices("raw_logs", "incident_logs"),
+        description="Raw Kubernetes crash logs or issue description",
+    )
     cluster_context: Optional[str] = Field(None, description="Optional cluster context/namespace")
     incident_id: Optional[str] = Field(None, description="Optional incident ID for session tracking")
 

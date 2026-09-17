@@ -10,6 +10,7 @@ from typing import Dict, Any, List
 from src.mcp_server import (
     mcp_server,
     mcp_search_kubernetes_documentation,
+    PROJECT_ID,
     DATASTORE_ID,
 )
 
