@@ -32,36 +32,7 @@ LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 
 
 # ============================================================================
-# 1. First-Class ADK Tools
-# ============================================================================
-
-def evaluate_kubectl_safety(command: str) -> Dict[str, Any]:
-    """Evaluate a kubectl command string against the production safety risk matrix.
-    
-    Args:
-        command: The raw kubectl command string to inspect.
-        
-    Returns:
-        Risk evaluation dictionary containing danger_level ('LOW', 'MEDIUM', 'HIGH') and any warning text.
-    """
-    dummy_cmd = KubectlCommand(
-        step_number=1,
-        title="Safety Check",
-        command=command,
-        explanation="",
-        danger_level="LOW"
-    )
-    evaluated = SafetyGuardian.evaluate_command(dummy_cmd)
-    return {
-        "command": command,
-        "danger_level": evaluated.danger_level,
-        "has_warning": "⚠️ WARNING" in evaluated.explanation,
-        "warning_text": SafetyGuardian.WARNING_TEXT if evaluated.danger_level == "HIGH" else None
-    }
-
-
-# ============================================================================
-# 2. First-Class ADK Agent Factories
+# 1. First-Class ADK Agent Factories
 # ============================================================================
 
 def create_planner_agent(
@@ -104,8 +75,7 @@ def create_executor_agent(
     Role: Deterministic Kubernetes CLI Generator.
     Goal: Translate abstract strategy into specific kubectl commands conforming to TroubleshootingPlan.
     """
-    safety_tool = FunctionTool(func=evaluate_kubectl_safety)
-    agent_tools = tools if tools is not None else [safety_tool]
+    agent_tools = tools if tools is not None else []
 
     return Agent(
         model=model_name,
@@ -330,8 +300,8 @@ class ExecutorAgent:
             raise ValueError(f"Failed to parse TroubleshootingPlan: {response}")
 
         # Post-process every command step through the deterministic Safety Guardian
-        for step in plan.steps:
-            SafetyGuardian.evaluate_command(step)
+        for i, step in enumerate(plan.steps):
+            plan.steps[i] = SafetyGuardian.evaluate_command(step)
 
         return plan
 
@@ -378,22 +348,27 @@ class RootOrchestrator:
 
     async def orchestrate(self, state: IncidentState) -> IncidentState:
         """Execute the multi-agent diagnosis pipeline (`PlannerAgent` -> `ExecutorAgent`) and manage state transitions."""
-        status_history: List[str] = list(state.metadata.get("status_history", []))
+        state.metadata.setdefault("status_history", [])
 
         # Phase 1: Delegate to PlannerAgent for root-cause analysis and MCP documentation retrieval
         state = await self.planner.plan(state)
         state.status = "PLANNING_COMPLETED"
-        status_history.append(state.status)
+        history = state.metadata.setdefault("status_history", [])
+        if not history or history[-1] != "PLANNING_COMPLETED":
+            history.append("PLANNING_COMPLETED")
 
         # Phase 2: Delegate to ExecutorAgent for structured kubectl synthesis and SafetyGuardian validation
         state = await self.executor.execute(state)
         state.status = "EXECUTED"
-        status_history.append(state.status)
+        history = state.metadata.setdefault("status_history", [])
+        if not history or history[-1] != "EXECUTED":
+            history.append("EXECUTED")
 
         # Phase 3: Finalize pipeline state
         state.status = "COMPLETED"
-        status_history.append(state.status)
-        state.metadata["status_history"] = status_history
+        history = state.metadata.setdefault("status_history", [])
+        if not history or history[-1] != "COMPLETED":
+            history.append("COMPLETED")
 
         return state
 
