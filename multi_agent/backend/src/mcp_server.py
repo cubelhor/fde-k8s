@@ -134,7 +134,7 @@ async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
             ),
         )
 
-        response = await client.search(request=req)
+        response = await client.search(request=req, timeout=4.0)
         results = []
 
         async for r in response:

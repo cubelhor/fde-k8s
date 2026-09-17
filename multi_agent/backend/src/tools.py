@@ -78,7 +78,7 @@ async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
             ),
         )
 
-        response = await client.search(request=req)
+        response = await client.search(request=req, timeout=4.0)
         results = []
 
         # Async iterator across SearchResponse results

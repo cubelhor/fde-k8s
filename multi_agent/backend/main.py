@@ -47,22 +47,25 @@ logger = logging.getLogger("k8s_copilot_api")
 
 from src.auth import get_identity_metadata, get_secret
 
-# Configure Tracer Provider (fetches external telemetry collector API key via GCP Secret Manager if configured)
+# Configure Tracer Provider (attaches GCP Cloud Trace exporter on Cloud Run or when ENABLE_CLOUD_TRACE=true)
 tracer_provider = TracerProvider()
-try:
-    telemetry_api_key = get_secret(
-        "telemetry-collector-api-key",
-        default_env_var="TELEMETRY_COLLECTOR_API_KEY",
-    )
-    from opentelemetry.exporter.gcp_trace import CloudTraceSpanExporter
-    cloud_trace_exporter = CloudTraceSpanExporter()
-    tracer_provider.add_span_processor(BatchSpanProcessor(cloud_trace_exporter))
-    logger.info(
-        f"OpenTelemetry configured with Google Cloud Trace exporter "
-        f"(Secret Manager collector key loaded: {bool(telemetry_api_key)})."
-    )
-except Exception as otel_err:
-    logger.info(f"Using local OpenTelemetry Tracer: {otel_err}")
+if os.getenv("K_SERVICE") or os.getenv("ENABLE_CLOUD_TRACE", "").lower() == "true":
+    try:
+        telemetry_api_key = get_secret(
+            "telemetry-collector-api-key",
+            default_env_var="TELEMETRY_COLLECTOR_API_KEY",
+        )
+        from opentelemetry.exporter.gcp_trace import CloudTraceSpanExporter
+        cloud_trace_exporter = CloudTraceSpanExporter()
+        tracer_provider.add_span_processor(
+            BatchSpanProcessor(cloud_trace_exporter, export_timeout_millis=2000)
+        )
+        logger.info(
+            f"OpenTelemetry configured with Google Cloud Trace exporter "
+            f"(Secret Manager collector key loaded: {bool(telemetry_api_key)})."
+        )
+    except Exception as otel_err:
+        logger.info(f"Using local OpenTelemetry Tracer: {otel_err}")
 
 trace.set_tracer_provider(tracer_provider)
 tracer = trace.get_tracer("k8s_copilot_tracer")

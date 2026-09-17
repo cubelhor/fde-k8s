@@ -138,7 +138,7 @@ def get_secret(
     try:
         client = _get_secret_manager_client()
         secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
-        response = client.access_secret_version(request={"name": secret_name})
+        response = client.access_secret_version(request={"name": secret_name}, timeout=2.0)
         payload = response.payload.data.decode("utf-8").strip()
         _secret_cache[cache_key] = payload
         logger.info(f"Loaded secret '{secret_id}' from Google Cloud Secret Manager.")
