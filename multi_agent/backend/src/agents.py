@@ -352,15 +352,11 @@ class ExecutorAgent:
 
     async def execute(self, state: IncidentState) -> IncidentState:
         """Translate checklist steps into structured KubectlCommand objects on IncidentState."""
-        strategy_input = "\n".join(state.planner_checklist) if state.planner_checklist else state.raw_logs
-        if state.retrieved_docs:
-            docs_summary = "\n\nGrounded Documentation Citations (mcp-k8s-docs-server):\n" + "\n".join(
-                f"- {d.get('breadcrumb', '')} ({d.get('url', '')})"
-                for d in state.retrieved_docs
-            )
-            strategy_input = f"{strategy_input}{docs_summary}"
-
-        plan = self.generate_commands(strategy_input)
+        plan = self.generate_commands(
+            incident_query=state.raw_logs,
+            planner_output="\n".join(state.planner_checklist) if state.planner_checklist else state.raw_logs,
+            retrieved_docs=state.retrieved_docs,
+        )
 
         state.raw_command = [cmd.model_copy() for cmd in plan.steps]
         state.final_validated_command = plan.steps
@@ -391,29 +387,27 @@ class RootOrchestrator:
             executor=getattr(self.executor, "adk_agent", None),
         )
 
+    @staticmethod
+    def _record_status(state: IncidentState, new_status: str) -> None:
+        """Set state.status and append to state.metadata['status_history'] without duplicate adjacent entries."""
+        state.status = new_status
+        history = state.metadata.setdefault("status_history", [])
+        if not history or history[-1] != new_status:
+            history.append(new_status)
+
     async def orchestrate(self, state: IncidentState) -> IncidentState:
         """Execute the multi-agent diagnosis pipeline (`PlannerAgent` -> `ExecutorAgent`) and manage state transitions."""
         state.metadata.setdefault("status_history", [])
 
         # Phase 1: Delegate to PlannerAgent for root-cause analysis and MCP documentation retrieval
         state = await self.planner.plan(state)
-        state.status = "PLANNING_COMPLETED"
-        history = state.metadata.setdefault("status_history", [])
-        if not history or history[-1] != "PLANNING_COMPLETED":
-            history.append("PLANNING_COMPLETED")
+        self._record_status(state, "PLANNING_COMPLETED")
 
         # Phase 2: Delegate to ExecutorAgent for structured kubectl synthesis and SafetyGuardian validation
         state = await self.executor.execute(state)
-        state.status = "EXECUTED"
-        history = state.metadata.setdefault("status_history", [])
-        if not history or history[-1] != "EXECUTED":
-            history.append("EXECUTED")
+        self._record_status(state, "EXECUTED")
 
         # Phase 3: Finalize pipeline state
-        state.status = "COMPLETED"
-        history = state.metadata.setdefault("status_history", [])
-        if not history or history[-1] != "COMPLETED":
-            history.append("COMPLETED")
-
+        self._record_status(state, "COMPLETED")
         return state
 

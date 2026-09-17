@@ -5,23 +5,13 @@ Integrates the MCP Server (`mcp-k8s-docs-server`) and Vertex AI Search
 using persistent gRPC client singletons.
 """
 
-import os
-import logging
-from typing import Dict, Any, List, Optional
-
-from google.cloud import discoveryengine_v1beta
-from google.auth import default
+from typing import Dict, Any, List
 
 from src.mcp_server import (
     mcp_server,
     mcp_search_kubernetes_documentation,
-    PROJECT_ID,
     DATASTORE_ID,
-    SERVING_CONFIG_PATH,
 )
-
-logger = logging.getLogger("k8s_tools")
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "europe-west4")
 
 # Tracks the most recent documentation chunks retrieved via MCP / Vertex AI Search
 _recent_retrieved_chunks: List[Dict[str, Any]] = []

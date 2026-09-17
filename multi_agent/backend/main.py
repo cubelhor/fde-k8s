@@ -12,7 +12,7 @@ import sys
 import uuid
 import logging
 from contextlib import asynccontextmanager
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,17 +25,15 @@ from src.models import (
     DiagnoseResponse,
     IncidentState,
     TroubleshootingPlan,
-    KubectlCommand,
     FeedbackRequest,
     FeedbackResponse,
 )
 from src.agents import PlannerAgent, ExecutorAgent, RootOrchestrator
-from src.guardrails import SafetyGuardian
 
 # --- OpenTelemetry Setup ---
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # Configure Logging
