@@ -11,13 +11,16 @@ class SafetyGuardian:
     """Production Risk Monitor and Safety Guardrail.
     
     Risk Matrix:
-    - HIGH: delete, apply, replace (modifies/deletes config) -> Injects warning text.
-    - MEDIUM: restart, scale (modifies runtime state, does not delete config).
-    - LOW: get, describe, logs, etc. (read-only queries).
+    - HIGH: delete, apply, replace, drain (modifies/deletes config or evicts nodes) -> Injects warning text.
+    - MEDIUM: restart, scale, set, patch, edit, cordon, uncordon, taint, label, annotate (modifies runtime state/resources).
+    - LOW: get, describe, logs, top, events, etc. (read-only queries).
     """
 
-    HIGH_RISK_PATTERN = re.compile(r"\b(delete|apply|replace)\b", re.IGNORECASE)
-    MEDIUM_RISK_PATTERN = re.compile(r"\b(restart|scale)\b", re.IGNORECASE)
+    HIGH_RISK_PATTERN = re.compile(r"\b(delete|apply|replace|drain)\b", re.IGNORECASE)
+    MEDIUM_RISK_PATTERN = re.compile(
+        r"\b(restart|scale|set|patch|edit|cordon|uncordon|taint|label|annotate)\b",
+        re.IGNORECASE,
+    )
     WARNING_TEXT = " ⚠️ WARNING: Destructive action."
 
     @staticmethod

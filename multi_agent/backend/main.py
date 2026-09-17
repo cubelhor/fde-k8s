@@ -239,6 +239,24 @@ async def diagnose_incident(
                 source_citations=citations
             )
 
+            # Step 4: Emit token & execution metrics to BigQuery (or structured telemetry log locally)
+            from src.telemetry import record_token_metrics_to_bigquery
+            est_prompt_tokens = max(1, len(state.raw_logs or "") // 4)
+            est_completion_tokens = max(
+                1,
+                sum(len(s.command) + len(s.explanation) for s in (state.final_validated_command or [])) // 4,
+            )
+            telemetry_result = record_token_metrics_to_bigquery(
+                incident_id=incident_id,
+                model_name=getattr(planner, "model_name", "gemini-2.5-pro"),
+                prompt_tokens=state.metadata.get("prompt_tokens", est_prompt_tokens),
+                completion_tokens=state.metadata.get("completion_tokens", est_completion_tokens),
+                checklist_steps=len(state.planner_checklist or []),
+                validated_commands=len(state.final_validated_command or []),
+                cluster_context=state.cluster_context,
+            )
+            state.metadata["telemetry_sink"] = telemetry_result.get("sink", "structured_log")
+
             logger.info(f"[{incident_id}] Incident diagnosis successfully completed with {len(citations)} MCP citations.")
 
             return DiagnoseResponse(
@@ -292,14 +310,19 @@ async def mcp_server_search(query: str, top_k: int = 3):
     summary="Record SRE feedback (thumbs up/down) for incident diagnosis."
 )
 async def submit_feedback(feedback: FeedbackRequest) -> FeedbackResponse:
-    """Collect SRE review feedback for telemetry and model evaluation."""
+    """Collect SRE review feedback for telemetry and model evaluation in Firestore (`copilot_feedback`)."""
     logger.info(f"Received feedback for incident {feedback.incident_id}: rating={feedback.rating}, user={feedback.user_id}")
-    
-    # Store feedback in structured log / Firestore
-    # In production, writes to google-cloud-firestore collection 'copilot_feedback'
+
+    from src.telemetry import record_feedback_to_firestore
+    sink_res = record_feedback_to_firestore(
+        incident_id=feedback.incident_id,
+        rating=feedback.rating,
+        comment=feedback.comments,
+        user_id=feedback.user_id,
+    )
     return FeedbackResponse(
-        success=True,
-        message=f"Feedback for incident {feedback.incident_id} recorded successfully."
+        success=bool(sink_res.get("persisted", True)),
+        message=f"Feedback for incident {feedback.incident_id} recorded successfully ({sink_res.get('sink', 'firestore')})."
     )
 
 

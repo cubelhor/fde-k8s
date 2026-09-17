@@ -83,6 +83,18 @@ def test_medium_risk_command_correction():
     assert evaluated_scale.danger_level == "MEDIUM"
     assert " ⚠️ WARNING" not in evaluated_scale.explanation
 
+    # 3. Test kubectl set resources command (from OOMKilled remediation) incorrectly tagged as LOW
+    cmd_set_resources = KubectlCommand(
+        step_number=3,
+        title="Increase Memory Limit on Deployment",
+        command="kubectl set resources deployment/payment-api --limits=memory=1Gi --namespace=prod",
+        explanation="Increases memory limit on parent deployment.",
+        danger_level="LOW"
+    )
+    evaluated_set = SafetyGuardian.evaluate_command(cmd_set_resources)
+    assert evaluated_set.danger_level == "MEDIUM"
+    assert " ⚠️ WARNING" not in evaluated_set.explanation
+
 
 def test_low_risk_command_correction():
     """Test that read-only commands (get, describe, logs) are set to LOW risk."""

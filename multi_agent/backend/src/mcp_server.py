@@ -10,6 +10,8 @@ Implements the Model Context Protocol (MCP) server specified in `design.md` (§3
 """
 
 import os
+import sys
+import asyncio
 import logging
 import argparse
 from typing import Dict, Any, Optional
@@ -48,6 +50,7 @@ mcp_server = FastMCP(
 _gcp_credentials = None
 _search_client: Optional[discoveryengine_v1beta.SearchServiceAsyncClient] = None
 _search_client_cls = None
+_search_client_loop = None
 _hybrid_retriever: Optional[HybridChunkRetriever] = None
 
 
@@ -60,13 +63,22 @@ def _get_gcp_credentials():
 
 
 def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
-    """Returns a persistent SearchServiceAsyncClient singleton to reuse gRPC channels across queries."""
-    global _search_client, _search_client_cls
+    """Returns a persistent SearchServiceAsyncClient singleton per active event loop to reuse gRPC channels across queries."""
+    global _search_client, _search_client_cls, _search_client_loop
     current_cls = discoveryengine_v1beta.SearchServiceAsyncClient
-    if _search_client is None or _search_client_cls is not current_cls:
+    try:
+        current_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        current_loop = None
+    if (
+        _search_client is None
+        or _search_client_cls is not current_cls
+        or _search_client_loop is not current_loop
+    ):
         creds = _get_gcp_credentials()
         _search_client = current_cls(credentials=creds)
         _search_client_cls = current_cls
+        _search_client_loop = current_loop
     return _search_client
 
 

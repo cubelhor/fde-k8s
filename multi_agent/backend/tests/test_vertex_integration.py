@@ -88,7 +88,7 @@ async def test_live_multi_agent_e2e_with_vertex_datastore():
     assert "retrieved_docs" in plan_context
     assert len(plan_context["retrieved_docs"]) > 0, "Planner must retrieve real chunks from Vertex AI Search"
 
-    final_plan: TroubleshootingPlan = await executor.generate_commands(
+    final_plan: TroubleshootingPlan = executor.generate_commands(
         incident_query=incident_query,
         planner_output=plan_context["plan"],
         retrieved_docs=plan_context["retrieved_docs"],
