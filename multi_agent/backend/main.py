@@ -29,7 +29,7 @@ from src.models import (
     FeedbackRequest,
     FeedbackResponse,
 )
-from src.agents import PlannerAgent, ExecutorAgent
+from src.agents import PlannerAgent, ExecutorAgent, RootOrchestrator
 from src.guardrails import SafetyGuardian
 
 # --- OpenTelemetry Setup ---
@@ -197,19 +197,18 @@ async def diagnose_incident(
         )
 
         try:
-            # Step 2: Phase 1 - Planner Agent (Root Cause Analysis & Doc Search)
-            with tracer.start_as_current_span("planner_phase"):
-                logger.info(f"[{incident_id}] Running PlannerAgent...")
-                state = await planner.plan(state)
-                logger.info(f"[{incident_id}] Planner completed with {len(state.planner_checklist)} steps.")
+            # Step 2: Delegate multi-agent execution to RootOrchestrator (PlannerAgent -> ExecutorAgent -> SafetyGuardian)
+            with tracer.start_as_current_span("root_orchestrator_phase"):
+                logger.info(f"[{incident_id}] Running RootOrchestrator...")
+                orchestrator = RootOrchestrator(planner=planner, executor=executor)
+                state = await orchestrator.orchestrate(state)
+                logger.info(
+                    f"[{incident_id}] RootOrchestrator completed (status={state.status}, "
+                    f"checklist={len(state.planner_checklist or [])}, "
+                    f"validated_commands={len(state.final_validated_command or [])})."
+                )
 
-            # Step 3: Phase 2 - Executor Agent (Structured Command Generation & Safety Interception)
-            with tracer.start_as_current_span("executor_phase"):
-                logger.info(f"[{incident_id}] Running ExecutorAgent & SafetyGuardian...")
-                state = await executor.execute(state)
-                logger.info(f"[{incident_id}] Executor completed with {len(state.final_validated_command)} validated commands.")
-
-            # Step 4: Construct Final Troubleshooting Plan from MCP / Vertex AI Search & Executor output
+            # Step 3: Construct Final Troubleshooting Plan from MCP / Vertex AI Search & Executor output
             plan_summary = state.metadata.get("problem_summary") or (
                 f"Incident {incident_id} Diagnosis: "
                 f"{state.raw_logs[:120]}..." if len(state.raw_logs) > 120 else state.raw_logs
@@ -227,7 +226,6 @@ async def diagnose_incident(
                 source_citations=citations
             )
 
-            state.status = "COMPLETED"
             logger.info(f"[{incident_id}] Incident diagnosis successfully completed with {len(citations)} MCP citations.")
 
             return DiagnoseResponse(

@@ -355,3 +355,45 @@ class ExecutorAgent:
             state.source_citations = plan.source_citations
         state.status = "EXECUTED"
         return state
+
+
+class RootOrchestrator:
+    """First-Class ADK Root Orchestrator coordinating delegation across PlannerAgent and ExecutorAgent."""
+
+    def __init__(
+        self,
+        planner: Optional[PlannerAgent] = None,
+        executor: Optional[ExecutorAgent] = None,
+        model_name: str = "gemini-2.5-pro",
+        adk_agent: Optional[Agent] = None,
+    ):
+        self.model_name = model_name
+        self.planner = planner or PlannerAgent(model_name=model_name)
+        self.executor = executor or ExecutorAgent(model_name=model_name)
+        self.adk_agent = adk_agent or create_root_orchestrator(
+            model_name=model_name,
+            planner=getattr(self.planner, "adk_agent", None),
+            executor=getattr(self.executor, "adk_agent", None),
+        )
+
+    async def orchestrate(self, state: IncidentState) -> IncidentState:
+        """Execute the multi-agent diagnosis pipeline (`PlannerAgent` -> `ExecutorAgent`) and manage state transitions."""
+        status_history: List[str] = list(state.metadata.get("status_history", []))
+
+        # Phase 1: Delegate to PlannerAgent for root-cause analysis and MCP documentation retrieval
+        state = await self.planner.plan(state)
+        state.status = "PLANNING_COMPLETED"
+        status_history.append(state.status)
+
+        # Phase 2: Delegate to ExecutorAgent for structured kubectl synthesis and SafetyGuardian validation
+        state = await self.executor.execute(state)
+        state.status = "EXECUTED"
+        status_history.append(state.status)
+
+        # Phase 3: Finalize pipeline state
+        state.status = "COMPLETED"
+        status_history.append(state.status)
+        state.metadata["status_history"] = status_history
+
+        return state
+
