@@ -8,11 +8,14 @@ Architecture:
 """
 
 import os
+import re
 import json
 import uuid
 import logging
+from pathlib import Path
 from typing import Optional, List, Dict, Any
 
+import yaml
 from google import genai
 from google.genai import types
 from google.adk.agents import Agent, SequentialAgent
@@ -32,6 +35,35 @@ LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "TRUE")
 os.environ.setdefault("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
 os.environ.setdefault("GOOGLE_CLOUD_LOCATION", LOCATION)
+
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
+SCOPE_LOCK_MESSAGE = "Error: Query is out of scope. Please provide a Kubernetes-related issue."
+_K8S_DOMAIN_PATTERN = re.compile(
+    r"\b(k8s|kubernetes|kubectl|pod|pods|node|nodes|deployment|service|ingress|configmap|secret|"
+    r"namespace|container|crashloopbackoff|oomkilled|imagepullbackoff|pending|evicted|kubelet|"
+    r"coredns|pvc|persistentvolume|statefulset|daemonset|replicaset|helm|gke|cluster|rbac|etcd|"
+    r"cni|calico|cilium|probe|liveness|readiness|exit\s+code|memory|cpu|crash|error|exception|log|logs)\b",
+    re.IGNORECASE,
+)
+
+
+def load_prompt(filename: str) -> str:
+    """Load a versioned system instruction prompt string from `backend/src/prompts/<filename>` using `yaml.safe_load`."""
+    prompt_path = PROMPTS_DIR / filename
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt YAML file not found: {prompt_path}")
+
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if isinstance(data, dict):
+        instruction = data.get("system_instruction") or data.get("instruction") or data.get("prompt")
+        if isinstance(instruction, str) and instruction.strip():
+            return instruction.strip()
+    elif isinstance(data, str) and data.strip():
+        return data.strip()
+
+    raise ValueError(f"Invalid or empty prompt schema in {prompt_path}")
 
 
 # ============================================================================
@@ -54,17 +86,7 @@ def create_planner_agent(
         model=model_name,
         name="planner_agent",
         description="Methodical Kubernetes SRE agent that analyzes crash logs and queries K8s reference docs.",
-        instruction="""
-        You are a seasoned Principal Kubernetes Site Reliability Engineer (SRE).
-        Your mission is to perform deep-dive root cause analysis on Kubernetes incident crash logs.
-
-        ### OPERATIONAL WORKFLOW:
-        1. Ingest the user's raw crash logs, events, and cluster context.
-        2. Identify key failure patterns (e.g. OOMKilled, CrashLoopBackOff, ImagePullBackOff, Pending, Evicted).
-        3. Use the 'search_kubernetes_documentation' tool to look up authoritative reference material.
-        4. Formulate an actionable, sequential diagnostic checklist for the Executor Agent to convert into commands.
-        5. For every recommendation, cite the official Kubernetes documentation source.
-        """,
+        instruction=load_prompt("planner_v1.yaml"),
         tools=agent_tools,
     )
 
@@ -84,18 +106,7 @@ def create_executor_agent(
         model=model_name,
         name="executor_agent",
         description="Deterministic Kubernetes CLI Generator translating strategies into structured kubectl commands.",
-        instruction="""
-        You are an expert Kubernetes CLI Command Generator.
-        Your mission is to translate high-level diagnostic steps into precise, production-grade `kubectl` commands.
-
-        ### REQUIREMENTS:
-        1. Output strict JSON conforming to the TroubleshootingPlan schema.
-        2. Assign realistic danger levels:
-           - LOW: read-only queries (`get`, `describe`, `logs`).
-           - MEDIUM: non-destructive state changes (`rollout restart`, `scale`).
-           - HIGH: destructive changes (`delete`, `apply`, `replace`).
-        3. Provide clear explanations and safe read-only alternatives for destructive steps.
-        """,
+        instruction=load_prompt("executor_v1.yaml"),
         tools=agent_tools,
     )
 
@@ -147,6 +158,14 @@ class PlannerAgent:
 
     async def plan(self, state: IncidentState) -> IncidentState:
         """Analyze crash logs, execute ADK tool loop (mcp-k8s-docs-server / Vertex AI Search), and populate state."""
+        # AI Safety Scope Lock: Reject non-Kubernetes / off-topic queries immediately
+        if not _K8S_DOMAIN_PATTERN.search(state.raw_logs or ""):
+            state.planner_checklist = [SCOPE_LOCK_MESSAGE]
+            state.retrieved_docs = []
+            state.source_citations = []
+            state.status = "PLANNING_COMPLETED"
+            return state
+
         session_id = state.incident_id or f"session-{uuid.uuid4().hex[:8]}"
         user_id = "sre-agent"
         app_name = "k8s_troubleshooting_copilot"
@@ -197,6 +216,13 @@ class PlannerAgent:
             logger.warning(f"ADK Runner LLM call fell back ({llm_exc}); retrieving MCP docs directly.")
 
         full_output = "".join(accumulated_text).strip()
+
+        if SCOPE_LOCK_MESSAGE in full_output:
+            state.planner_checklist = [SCOPE_LOCK_MESSAGE]
+            state.retrieved_docs = []
+            state.source_citations = []
+            state.status = "PLANNING_COMPLETED"
+            return state
 
         # Collect chunks retrieved via mcp-k8s-docs-server during the ADK turn
         retrieved_chunks = get_and_clear_recent_chunks()
