@@ -78,15 +78,17 @@ tracer = trace.get_tracer("k8s_copilot_tracer")
 # Global Agent Instances
 _planner_agent: Optional[PlannerAgent] = None
 _executor_agent: Optional[ExecutorAgent] = None
+_root_orchestrator: Optional[RootOrchestrator] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager to initialize agent singletons on startup."""
-    global _planner_agent, _executor_agent
+    global _planner_agent, _executor_agent, _root_orchestrator
     logger.info("Initializing Kubernetes Troubleshooting Copilot Agents...")
     _planner_agent = PlannerAgent(model_name="gemini-2.5-pro")
     _executor_agent = ExecutorAgent(model_name="gemini-2.5-pro")
+    _root_orchestrator = RootOrchestrator(planner=_planner_agent, executor=_executor_agent)
     yield
     logger.info("Shutting down Kubernetes Troubleshooting Copilot Backend.")
 
@@ -105,6 +107,14 @@ def get_executor_agent() -> ExecutorAgent:
     if _executor_agent is None:
         _executor_agent = ExecutorAgent(model_name="gemini-2.5-pro")
     return _executor_agent
+
+
+def get_root_orchestrator(planner: PlannerAgent, executor: ExecutorAgent) -> RootOrchestrator:
+    """Return singleton RootOrchestrator when default agents are used, or wrap overridden test dependencies."""
+    global _root_orchestrator, _planner_agent, _executor_agent
+    if _root_orchestrator is not None and planner is _planner_agent and executor is _executor_agent:
+        return _root_orchestrator
+    return RootOrchestrator(planner=planner, executor=executor)
 
 
 # ============================================================================
@@ -200,10 +210,10 @@ async def diagnose_incident(
         )
 
         try:
-            # Step 2: Delegate multi-agent execution to RootOrchestrator (PlannerAgent -> ExecutorAgent -> SafetyGuardian)
+            # Step 2: Delegate multi-agent execution to RootOrchestrator (SequentialAgent: PlannerAgent -> ExecutorAgent)
             with tracer.start_as_current_span("root_orchestrator_phase"):
-                logger.info(f"[{incident_id}] Running RootOrchestrator...")
-                orchestrator = RootOrchestrator(planner=planner, executor=executor)
+                logger.info(f"[{incident_id}] Running RootOrchestrator (SequentialAgent)...")
+                orchestrator = get_root_orchestrator(planner=planner, executor=executor)
                 state = await orchestrator.orchestrate(state)
                 logger.info(
                     f"[{incident_id}] RootOrchestrator completed (status={state.status}, "

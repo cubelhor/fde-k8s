@@ -9,7 +9,7 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from google.adk.agents import Agent
+from google.adk.agents import Agent, SequentialAgent
 from src.agents import (
     create_planner_agent,
     create_executor_agent,
@@ -50,13 +50,14 @@ def test_executor_adk_agent_configuration():
 
 
 def test_root_orchestrator_configuration():
-    """Verify that Root Orchestrator initializes with Planner and Executor subagents."""
+    """Verify that Root Orchestrator is a deterministic ADK SequentialAgent with Planner and Executor subagents."""
     orchestrator = create_root_orchestrator(model_name="gemini-2.5-pro")
 
-    assert isinstance(orchestrator, Agent)
+    assert isinstance(orchestrator, SequentialAgent)
     assert orchestrator.name == "k8s_troubleshooting_orchestrator"
-    assert orchestrator.model == "gemini-2.5-pro"
-    assert "Root Incident Commander" in orchestrator.instruction
+    assert "Root Incident Commander" in orchestrator.description
+    assert len(orchestrator.sub_agents) == 2
+    assert [sub.name for sub in orchestrator.sub_agents] == ["planner_agent", "executor_agent"]
 
 
 def test_adk_safety_tool_execution():

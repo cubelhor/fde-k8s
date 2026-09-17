@@ -10,13 +10,14 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
+from google.adk.agents import SequentialAgent
 from src.agents import RootOrchestrator, PlannerAgent, ExecutorAgent
 from src.models import IncidentState, KubectlCommand
 
 
 @pytest.mark.asyncio
 async def test_root_orchestrator_delegation_order_and_status_transitions():
-    """Verify RootOrchestrator calls PlannerAgent then ExecutorAgent in order and transitions status to COMPLETED."""
+    """Verify RootOrchestrator (SequentialAgent) calls PlannerAgent then ExecutorAgent in order and transitions status to COMPLETED."""
     call_order = []
 
     mock_planner = MagicMock(spec=PlannerAgent)
@@ -57,6 +58,8 @@ async def test_root_orchestrator_delegation_order_and_status_transitions():
     mock_executor.execute = AsyncMock(side_effect=fake_execute)
 
     orchestrator = RootOrchestrator(planner=mock_planner, executor=mock_executor)
+    assert isinstance(orchestrator.adk_agent, SequentialAgent)
+    assert [sub.name for sub in orchestrator.adk_agent.sub_agents] == ["planner_agent", "executor_agent"]
 
     initial_state = IncidentState(
         incident_id="inc-orch-001",

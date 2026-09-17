@@ -15,7 +15,7 @@ from typing import Optional, List, Dict, Any
 
 from google import genai
 from google.genai import types
-from google.adk.agents import Agent
+from google.adk.agents import Agent, SequentialAgent
 from google.adk.tools import FunctionTool
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -131,21 +131,21 @@ def create_root_orchestrator(
     model_name: str = "gemini-2.5-pro",
     planner: Optional[Agent] = None,
     executor: Optional[Agent] = None,
-) -> Agent:
-    """Create the ADK Root Orchestrator coordinating Planner and Executor subagents."""
+) -> SequentialAgent:
+    """Create the deterministic ADK SequentialAgent Root Orchestrator coordinating Planner and Executor subagents."""
     p_agent = planner or create_planner_agent(model_name=model_name)
     e_agent = executor or create_executor_agent(model_name=model_name)
 
-    return Agent(
-        model=model_name,
+    # Detach from any prior parent SequentialAgent so subagents can be safely re-bound
+    if getattr(p_agent, "parent_agent", None) is not None:
+        p_agent.parent_agent = None
+    if getattr(e_agent, "parent_agent", None) is not None:
+        e_agent.parent_agent = None
+
+    return SequentialAgent(
         name="k8s_troubleshooting_orchestrator",
-        description="Root Orchestrator for Kubernetes Incident Troubleshooting Copilot.",
-        instruction="""
-        You are the Root Incident Commander for Kubernetes Troubleshooting.
-        Coordinate with your Planner Subagent to diagnose issues and your Executor Subagent to produce verified commands.
-        """,
+        description="Root Incident Commander for Kubernetes Troubleshooting coordinating PlannerAgent followed by ExecutorAgent.",
         sub_agents=[p_agent, e_agent],
-        tools=[],
     )
 
 
@@ -358,19 +358,19 @@ class ExecutorAgent:
 
 
 class RootOrchestrator:
-    """First-Class ADK Root Orchestrator coordinating delegation across PlannerAgent and ExecutorAgent."""
+    """First-Class Deterministic ADK SequentialAgent Root Orchestrator coordinating PlannerAgent and ExecutorAgent."""
 
     def __init__(
         self,
         planner: Optional[PlannerAgent] = None,
         executor: Optional[ExecutorAgent] = None,
         model_name: str = "gemini-2.5-pro",
-        adk_agent: Optional[Agent] = None,
+        adk_agent: Optional[SequentialAgent] = None,
     ):
         self.model_name = model_name
         self.planner = planner or PlannerAgent(model_name=model_name)
         self.executor = executor or ExecutorAgent(model_name=model_name)
-        self.adk_agent = adk_agent or create_root_orchestrator(
+        self.adk_agent: SequentialAgent = adk_agent or create_root_orchestrator(
             model_name=model_name,
             planner=getattr(self.planner, "adk_agent", None),
             executor=getattr(self.executor, "adk_agent", None),
