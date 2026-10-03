@@ -279,6 +279,7 @@ async def diagnose_incident(
 
             # Step 4: Emit token, latency, & error_type metrics via stdout JSON for the Cloud Logging -> BigQuery Sink
             elapsed_latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
+            state.metadata.setdefault("latency_ms", elapsed_latency_ms)
             est_prompt_tokens = max(1, len(state.raw_logs or "") // 4)
             est_completion_tokens = max(
                 1,
@@ -291,6 +292,9 @@ async def diagnose_incident(
                 cached_tokens=state.metadata.get("cached_tokens", 0),
                 completion_tokens=state.metadata.get("completion_tokens", est_completion_tokens),
                 latency_ms=state.metadata.get("latency_ms", elapsed_latency_ms),
+                planner_latency_ms=state.metadata.get("planner_latency_ms", 0.0),
+                executor_latency_ms=state.metadata.get("executor_latency_ms", 0.0),
+                execution_mode=state.metadata.get("execution_mode", "async"),
                 checklist_steps=len(state.planner_checklist or []),
                 validated_commands=len(state.final_validated_command or []),
                 error_type=error_type,

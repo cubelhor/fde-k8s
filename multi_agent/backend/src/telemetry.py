@@ -81,6 +81,9 @@ def record_token_metrics_to_bigquery(
     validated_commands: int,
     cached_tokens: int = 0,
     latency_ms: float = 0.0,
+    planner_latency_ms: float = 0.0,
+    executor_latency_ms: float = 0.0,
+    execution_mode: str = "async",
     error_type: Optional[str] = None,
     cluster_context: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -108,6 +111,9 @@ def record_token_metrics_to_bigquery(
         "total_tokens": max(prompt_tokens, uncached_prompt_tokens + cached_tokens) + completion_tokens,
         "estimated_cost_usd": estimated_cost_usd,
         "latency_ms": round(float(latency_ms), 2),
+        "planner_latency_ms": round(float(planner_latency_ms), 2),
+        "executor_latency_ms": round(float(executor_latency_ms), 2),
+        "execution_mode": execution_mode,
         "checklist_steps": checklist_steps,
         "validated_commands": validated_commands,
         "error_type": error_type or "GeneralClusterAnomaly",
@@ -142,13 +148,30 @@ async def record_feedback_to_firestore(
     overwrite `rating` in-place while `copied_commands` appends via `ArrayUnion`.
     """
     now_iso = datetime.now(timezone.utc).isoformat()
+    baseline_mttr_minutes = 30.0
+    observed_minutes = round(float(session_duration_sec) / 60.0, 2) if session_duration_sec is not None else 3.0
+
     doc_data: Dict[str, Any] = {
         "incident_id": incident_id,
         "user_id": user_id or "anonymous-sre",
         "updated_at": now_iso,
+        "baseline_mttr_minutes": baseline_mttr_minutes,
     }
     if rating is not None:
         doc_data["rating"] = rating
+        if rating == "up":
+            simulated_res = min(baseline_mttr_minutes, max(1.0, observed_minutes))
+            doc_data["simulated_resolution_minutes"] = round(simulated_res, 2)
+            doc_data["simulated_mttr_saved_minutes"] = round(baseline_mttr_minutes - simulated_res, 2)
+        else:
+            doc_data["simulated_resolution_minutes"] = baseline_mttr_minutes
+            doc_data["simulated_mttr_saved_minutes"] = 0.0
+    elif copied_command:
+        # Command adoption without explicit thumbs-down indicates partial-to-full triage acceleration
+        simulated_res = min(baseline_mttr_minutes, max(2.0, observed_minutes))
+        doc_data["simulated_resolution_minutes"] = round(simulated_res, 2)
+        doc_data["simulated_mttr_saved_minutes"] = round((baseline_mttr_minutes - simulated_res) * 0.75, 2)
+
     if comment is not None:
         doc_data["comment"] = comment
     if session_duration_sec is not None:

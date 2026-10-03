@@ -10,12 +10,14 @@ Architecture:
 import os
 import re
 import json
+import time
 import uuid
 import logging
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 import yaml
+from opentelemetry import trace
 from google import genai
 from google.genai import types
 from google.adk.agents import Agent, SequentialAgent
@@ -28,6 +30,7 @@ from src.guardrails import SafetyGuardian
 from src.tools import search_kubernetes_documentation, get_and_clear_recent_chunks
 
 logger = logging.getLogger("k8s_agents")
+tracer = trace.get_tracer(__name__)
 
 # --- Default Environment Configurations ---
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
@@ -324,7 +327,7 @@ class ExecutorAgent:
                 location=self.location
             )
 
-    def generate_commands(
+    async def generate_commands(
         self,
         strategy_text: Optional[str] = None,
         *,
@@ -332,7 +335,7 @@ class ExecutorAgent:
         planner_output: Optional[str] = None,
         retrieved_docs: Optional[List[Dict[str, Any]]] = None,
     ) -> TroubleshootingPlan:
-        """Translate abstract troubleshooting strategy into structured, safety-verified kubectl commands."""
+        """Translate abstract troubleshooting strategy into structured, safety-verified kubectl commands asynchronously."""
         if strategy_text is None:
             docs_context = ""
             if retrieved_docs:
@@ -349,7 +352,7 @@ class ExecutorAgent:
         )
         self._last_usage_tokens = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
 
-        response = self.client.models.generate_content(
+        response = await self.client.aio.models.generate_content(
             model=self.model_name,
             contents=strategy_text,
             config=config,
@@ -374,7 +377,7 @@ class ExecutorAgent:
 
     async def execute(self, state: IncidentState) -> IncidentState:
         """Translate checklist steps into structured KubectlCommand objects on IncidentState."""
-        plan = self.generate_commands(
+        plan = await self.generate_commands(
             incident_query=state.raw_logs,
             planner_output="\n".join(state.planner_checklist) if state.planner_checklist else state.raw_logs,
             retrieved_docs=state.retrieved_docs,
@@ -428,13 +431,26 @@ class RootOrchestrator:
     async def orchestrate(self, state: IncidentState) -> IncidentState:
         """Execute the multi-agent diagnosis pipeline (`PlannerAgent` -> `ExecutorAgent`) and manage state transitions."""
         state.metadata.setdefault("status_history", [])
+        state.metadata["execution_mode"] = "async"
 
         # Phase 1: Delegate to PlannerAgent for root-cause analysis and MCP documentation retrieval
-        state = await self.planner.plan(state)
+        t0 = time.perf_counter()
+        with tracer.start_as_current_span("planner_agent_phase") as planner_span:
+            planner_span.set_attribute("incident.id", state.incident_id)
+            state = await self.planner.plan(state)
+            planner_ms = round((time.perf_counter() - t0) * 1000.0, 2)
+            planner_span.set_attribute("agent.latency_ms", planner_ms)
+            state.metadata["planner_latency_ms"] = planner_ms
         self._record_status(state, "PLANNING_COMPLETED")
 
         # Phase 2: Delegate to ExecutorAgent for structured kubectl synthesis and SafetyGuardian validation
-        state = await self.executor.execute(state)
+        t1 = time.perf_counter()
+        with tracer.start_as_current_span("executor_agent_phase") as executor_span:
+            executor_span.set_attribute("incident.id", state.incident_id)
+            state = await self.executor.execute(state)
+            executor_ms = round((time.perf_counter() - t1) * 1000.0, 2)
+            executor_span.set_attribute("agent.latency_ms", executor_ms)
+            state.metadata["executor_latency_ms"] = executor_ms
         self._record_status(state, "EXECUTED")
 
         # Phase 3: Finalize pipeline state

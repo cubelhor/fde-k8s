@@ -97,7 +97,7 @@ def _build_ci_agents_for_schema_eval():
         resp.text = raw_json
         return resp
 
-    mock_genai_client.models.generate_content.side_effect = _generate_structured_plan
+    mock_genai_client.aio.models.generate_content = AsyncMock(side_effect=_generate_structured_plan)
     executor = ExecutorAgent(client=mock_genai_client)
     return planner, executor
 
