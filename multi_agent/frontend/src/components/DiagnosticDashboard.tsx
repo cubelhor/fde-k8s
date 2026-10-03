@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type {
   DiagnoseApiResponse,
   IncidentState,
@@ -46,12 +46,76 @@ export const DiagnosticDashboard: React.FC = () => {
   const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
   const [feedbackSubmitting, setFeedbackSubmitting] = useState<boolean>(false);
 
+  // Active foreground session duration tracking (pauses when tab is hidden)
+  const activeIncidentIdRef = useRef<string | null>(null);
+  const accumulatedActiveMsRef = useRef<number>(0);
+  const visibleStartMsRef = useRef<number | null>(null);
+
+  const getSessionDurationSec = (): number => {
+    let totalMs = accumulatedActiveMsRef.current;
+    if (visibleStartMsRef.current !== null) {
+      totalMs += Date.now() - visibleStartMsRef.current;
+    }
+    return Math.max(0.1, Math.round((totalMs / 1000) * 100) / 100);
+  };
+
+  const flushSessionBeacon = (incidentId: string | null) => {
+    if (!incidentId) return;
+    const durationSec = getSessionDurationSec();
+    const payload = JSON.stringify({
+      incident_id: incidentId,
+      session_duration_sec: durationSec,
+    });
+    const endpoint = `${API_BASE_URL}/api/v1/feedback`;
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon(endpoint, blob);
+      } else {
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      // Non-blocking session telemetry flush
+    }
+  };
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!activeIncidentIdRef.current) return;
+      if (document.visibilityState === 'hidden') {
+        if (visibleStartMsRef.current !== null) {
+          accumulatedActiveMsRef.current += Date.now() - visibleStartMsRef.current;
+          visibleStartMsRef.current = null;
+        }
+        flushSessionBeacon(activeIncidentIdRef.current);
+      } else if (document.visibilityState === 'visible') {
+        visibleStartMsRef.current = Date.now();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const handleDiagnoseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedLogs = incidentLogs.trim();
     if (!trimmedLogs) {
       setError('Please paste Kubernetes crash logs or describe the cluster anomaly.');
       return;
+    }
+
+    // Flush previous incident session before starting a new diagnosis
+    if (activeIncidentIdRef.current) {
+      flushSessionBeacon(activeIncidentIdRef.current);
+      activeIncidentIdRef.current = null;
     }
 
     setLoading(true);
@@ -114,6 +178,12 @@ export const DiagnosticDashboard: React.FC = () => {
           : '') ||
         `Root-cause analysis completed for incident ${resolvedState.incident_id || 'session'}.`;
 
+      const newIncidentId =
+        resolvedState.incident_id || `inc-${Date.now().toString(36)}`;
+      activeIncidentIdRef.current = newIncidentId;
+      accumulatedActiveMsRef.current = 0;
+      visibleStartMsRef.current = Date.now();
+
       setIncidentState(resolvedState);
       setTroubleshootingPlan({
         problem_summary: resolvedSummary,
@@ -137,7 +207,9 @@ export const DiagnosticDashboard: React.FC = () => {
     setFeedbackStatus(null);
 
     const activeIncidentId =
-      incidentState?.incident_id || `inc-${Date.now().toString(36)}`;
+      incidentState?.incident_id ||
+      activeIncidentIdRef.current ||
+      `inc-${Date.now().toString(36)}`;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/feedback`, {
@@ -148,6 +220,7 @@ export const DiagnosticDashboard: React.FC = () => {
         body: JSON.stringify({
           incident_id: activeIncidentId,
           rating,
+          session_duration_sec: getSessionDurationSec(),
           comments:
             rating === 'thumbs_up'
               ? 'SRE verified remediation plan accuracy.'
@@ -170,6 +243,29 @@ export const DiagnosticDashboard: React.FC = () => {
       );
     } finally {
       setFeedbackSubmitting(false);
+    }
+  };
+
+  const handleCopyCommand = async (command: string, stepNumber: number) => {
+    const activeIncidentId =
+      incidentState?.incident_id ||
+      activeIncidentIdRef.current ||
+      `inc-${Date.now().toString(36)}`;
+    try {
+      await fetch(`${API_BASE_URL}/api/v1/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          incident_id: activeIncidentId,
+          copied_command: command,
+          step_number: stepNumber,
+          session_duration_sec: getSessionDurationSec(),
+        }),
+      });
+    } catch {
+      // Non-blocking telemetry call
     }
   };
 
@@ -243,6 +339,10 @@ export const DiagnosticDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    if (activeIncidentIdRef.current) {
+                      flushSessionBeacon(activeIncidentIdRef.current);
+                      activeIncidentIdRef.current = null;
+                    }
                     setIncidentLogs('');
                     setError(null);
                   }}
@@ -393,6 +493,7 @@ export const DiagnosticDashboard: React.FC = () => {
                 <CommandBlock
                   key={`${step.step_number}-${step.title}`}
                   step={step}
+                  onCopyCommand={handleCopyCommand}
                 />
               ))}
             </div>

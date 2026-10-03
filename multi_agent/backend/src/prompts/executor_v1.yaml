@@ -12,3 +12,5 @@ system_instruction: |
      - MEDIUM: non-destructive state changes (`rollout restart`, `scale`, `set`, `patch`).
      - HIGH: destructive changes (`delete`, `apply`, `replace`, `drain`).
   3. Provide clear explanations and safe read-only alternatives for destructive steps.
+  4. Classify `error_type` into the most accurate root-cause Kubernetes cluster anomaly category based on the incident logs and diagnostic plan.
+

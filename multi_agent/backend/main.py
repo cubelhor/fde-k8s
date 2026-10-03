@@ -9,8 +9,11 @@ Architecture:
 
 import os
 import sys
+import json
+import time
 import uuid
 import logging
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -36,11 +39,42 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
-# Configure Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
+
+class StructuredJsonFormatter(logging.Formatter):
+    """Formats log records as single-line JSON objects with OpenTelemetry trace/span IDs for Cloud Logging."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        span_ctx = trace.get_current_span().get_span_context()
+        trace_id = f"{span_ctx.trace_id:032x}" if span_ctx and span_ctx.is_valid else None
+        span_id = f"{span_ctx.span_id:016x}" if span_ctx and span_ctx.is_valid else None
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
+
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "severity": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "trace_id": trace_id,
+            "span_id": span_id,
+        }
+        if trace_id:
+            log_entry["logging.googleapis.com/trace"] = f"projects/{project_id}/traces/{trace_id}"
+            log_entry["logging.googleapis.com/spanId"] = span_id
+
+        audit_payload = getattr(record, "audit_payload", None)
+        if isinstance(audit_payload, dict):
+            log_entry.update(audit_payload)
+
+        if record.exc_info:
+            log_entry["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(log_entry)
+
+
+# Configure Structured JSON Logging
+_json_handler = logging.StreamHandler(sys.stdout)
+_json_handler.setFormatter(StructuredJsonFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[_json_handler], force=True)
 logger = logging.getLogger("k8s_copilot_api")
 
 from src.auth import get_identity_metadata, get_secret
@@ -193,6 +227,7 @@ async def diagnose_incident(
     5. Returns finalized TroubleshootingPlan and full IncidentState trajectory.
     """
     incident_id = request.incident_id or f"inc-{uuid.uuid4().hex[:8]}"
+    start_time = time.perf_counter()
     logger.info(f"Starting diagnosis pipeline for incident: {incident_id}")
 
     with tracer.start_as_current_span("diagnose_incident") as span:
@@ -231,14 +266,19 @@ async def diagnose_incident(
                 "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
             ]
 
+            from src.telemetry import record_token_metrics_to_bigquery, classify_cluster_error_type
+            error_type = state.metadata.get("error_type") or classify_cluster_error_type(state.raw_logs)
+            state.metadata["error_type"] = error_type
+
             plan = TroubleshootingPlan(
                 problem_summary=plan_summary,
+                error_type=error_type,
                 steps=state.final_validated_command,
                 source_citations=citations
             )
 
-            # Step 4: Emit token & execution metrics to BigQuery (or structured telemetry log locally)
-            from src.telemetry import record_token_metrics_to_bigquery
+            # Step 4: Emit token, latency, & error_type metrics via stdout JSON for the Cloud Logging -> BigQuery Sink
+            elapsed_latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
             est_prompt_tokens = max(1, len(state.raw_logs or "") // 4)
             est_completion_tokens = max(
                 1,
@@ -248,14 +288,39 @@ async def diagnose_incident(
                 incident_id=incident_id,
                 model_name=getattr(planner, "model_name", "gemini-2.5-pro"),
                 prompt_tokens=state.metadata.get("prompt_tokens", est_prompt_tokens),
+                cached_tokens=state.metadata.get("cached_tokens", 0),
                 completion_tokens=state.metadata.get("completion_tokens", est_completion_tokens),
+                latency_ms=state.metadata.get("latency_ms", elapsed_latency_ms),
                 checklist_steps=len(state.planner_checklist or []),
                 validated_commands=len(state.final_validated_command or []),
+                error_type=error_type,
                 cluster_context=state.cluster_context,
             )
-            state.metadata["telemetry_sink"] = telemetry_result.get("sink", "structured_log")
+            state.metadata["telemetry_sink"] = telemetry_result.get("sink", "cloud_logging_bigquery_sink")
 
-            logger.info(f"[{incident_id}] Incident diagnosis successfully completed with {len(citations)} MCP citations.")
+            # Step 5: Emit immutable Audit Trail log capturing exact SRE query and generated command responses
+            logger.info(
+                f"[{incident_id}] Incident diagnosis completed and audited.",
+                extra={
+                    "audit_payload": {
+                        "event_type": "AUDIT_TRAIL",
+                        "incident_id": incident_id,
+                        "cluster_context": state.cluster_context or "unknown",
+                        "sre_query": request.raw_logs,
+                        "generated_commands": [
+                            {
+                                "step_number": s.step_number,
+                                "title": s.title,
+                                "command": s.command,
+                                "danger_level": s.danger_level,
+                                "alternative_command": s.alternative_command,
+                            }
+                            for s in (plan.steps or [])
+                        ],
+                        "source_citations": citations,
+                    }
+                },
+            )
 
             return DiagnoseResponse(
                 success=True,
@@ -305,18 +370,24 @@ async def mcp_server_search(query: str, top_k: int = 3):
     response_model=FeedbackResponse,
     status_code=status.HTTP_200_OK,
     tags=["Telemetry"],
-    summary="Record SRE feedback (thumbs up/down) for incident diagnosis."
+    summary="Record SRE feedback (thumbs up/down, comments, and copy-to-clipboard actions) for incident diagnosis."
 )
 async def submit_feedback(feedback: FeedbackRequest) -> FeedbackResponse:
-    """Collect SRE review feedback for telemetry and model evaluation in Firestore (`copilot_feedback`)."""
-    logger.info(f"Received feedback for incident {feedback.incident_id}: rating={feedback.rating}, user={feedback.user_id}")
+    """Collect SRE review feedback and command copy actions in Firestore (`copilot_feedback`)."""
+    logger.info(
+        f"Received feedback for incident {feedback.incident_id}: "
+        f"rating={feedback.rating}, copied_command={bool(feedback.copied_command)}, user={feedback.user_id}"
+    )
 
     from src.telemetry import record_feedback_to_firestore
-    sink_res = record_feedback_to_firestore(
+    sink_res = await record_feedback_to_firestore(
         incident_id=feedback.incident_id,
         rating=feedback.rating,
         comment=feedback.comments,
         user_id=feedback.user_id,
+        copied_command=feedback.copied_command,
+        step_number=feedback.step_number,
+        session_duration_sec=feedback.session_duration_sec,
     )
     return FeedbackResponse(
         success=bool(sink_res.get("persisted", True)),

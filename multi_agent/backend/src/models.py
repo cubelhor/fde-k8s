@@ -1,7 +1,23 @@
 """Data models and Pydantic schemas for the Kubernetes Troubleshooting Copilot."""
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field, AliasChoices
+
+
+ClusterErrorCategory = Literal[
+    "OOMKilled",
+    "ImagePullBackOff",
+    "CreateContainerConfigError",
+    "CrashLoopBackOff",
+    "NodeNotReady / ResourcePressure",
+    "DNS / CoreDNS",
+    "RBAC / Forbidden",
+    "PVC / Storage",
+    "ProbeFailure",
+    "Network / Ingress",
+    "Scheduling / Capacity",
+    "GeneralClusterAnomaly",
+]
 
 
 class KubectlCommand(BaseModel):
@@ -17,8 +33,13 @@ class KubectlCommand(BaseModel):
 class TroubleshootingPlan(BaseModel):
     """Complete structured troubleshooting plan produced by the agentic pipeline."""
     problem_summary: str = Field(description="Summary of the analyzed problem")
+    error_type: Optional[ClusterErrorCategory] = Field(
+        None,
+        description="Classified root-cause Kubernetes cluster error category for telemetry and BI",
+    )
     steps: List[KubectlCommand] = Field(description="List of kubectl command steps in order")
     source_citations: List[str] = Field(description="URLs/names of K8s documents referenced")
+
 
 
 class IncidentState(BaseModel):
@@ -55,14 +76,20 @@ class DiagnoseResponse(BaseModel):
 
 
 class FeedbackRequest(BaseModel):
-    """SRE feedback payload for incident diagnoses."""
+    """SRE feedback and user action payload for incident diagnoses."""
     incident_id: str = Field(..., description="Incident ID being reviewed")
-    rating: str = Field(..., description="'thumbs_up' or 'thumbs_down'")
+    rating: Optional[str] = Field(None, description="'thumbs_up' or 'thumbs_down' when rating a plan")
+    copied_command: Optional[str] = Field(None, description="Exact kubectl command copied by the SRE")
+    step_number: Optional[int] = Field(None, description="Step number of the copied command")
+    session_duration_sec: Optional[float] = Field(None, description="Active SRE session duration in seconds")
     comments: Optional[str] = Field(None, description="Optional SRE feedback or correction comments")
     user_id: Optional[str] = Field("sre-user", description="User ID submitting feedback")
+
+
 
 
 class FeedbackResponse(BaseModel):
     """Response acknowledging feedback receipt."""
     success: bool = Field(True, description="Whether feedback was recorded")
     message: str = Field("Feedback recorded successfully", description="Status message")
+

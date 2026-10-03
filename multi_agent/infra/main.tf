@@ -129,3 +129,39 @@ resource "google_cloud_run_v2_service_iam_member" "public_access" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# --- Firestore IAM Role for User Feedback (copilot_feedback) ---
+resource "google_project_iam_member" "firestore_user" {
+  project = var.project_id
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.copilot_backend.email}"
+}
+
+# --- BigQuery Telemetry Dataset & Cloud Logging Sink (TOKEN_METRICS) ---
+resource "google_bigquery_dataset" "telemetry" {
+  project       = var.project_id
+  dataset_id    = "k8s_copilot_telemetry"
+  friendly_name = "Kubernetes Troubleshooting Copilot Telemetry"
+  description   = "Stores structured TOKEN_METRICS and latency telemetry routed from Cloud Logging."
+  location      = var.region
+}
+
+resource "google_logging_project_sink" "bigquery_token_metrics" {
+  project                = var.project_id
+  name                   = "k8s-copilot-token-metrics-bq-sink"
+  destination            = "bigquery.googleapis.com/projects/${var.project_id}/datasets/${google_bigquery_dataset.telemetry.dataset_id}"
+  filter                 = "jsonPayload.event_type=\"TOKEN_METRICS\""
+  unique_writer_identity = true
+
+  bigquery_options {
+    use_partitioned_tables = true
+  }
+}
+
+resource "google_bigquery_dataset_iam_member" "log_sink_writer" {
+  project    = var.project_id
+  dataset_id = google_bigquery_dataset.telemetry.dataset_id
+  role       = "roles/bigquery.dataEditor"
+  member     = google_logging_project_sink.bigquery_token_metrics.writer_identity
+}
+

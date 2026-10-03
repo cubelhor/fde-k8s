@@ -203,6 +203,9 @@ class PlannerAgent:
         )
 
         accumulated_text = []
+        planner_prompt_tokens = 0
+        planner_cached_tokens = 0
+        planner_completion_tokens = 0
 
         try:
             async for event in runner.run_async(
@@ -210,12 +213,22 @@ class PlannerAgent:
                 session_id=session_id,
                 new_message=message
             ):
+                usage_tokens = _extract_usage_tokens(event)
+                planner_prompt_tokens += usage_tokens["prompt_tokens"]
+                planner_cached_tokens += usage_tokens["cached_tokens"]
+                planner_completion_tokens += usage_tokens["completion_tokens"]
+
                 if event.content and event.content.parts:
                     for part in event.content.parts:
                         if getattr(part, "text", None):
                             accumulated_text.append(part.text)
         except Exception as llm_exc:
             logger.warning(f"ADK Runner LLM call fell back ({llm_exc}); retrieving MCP docs directly.")
+
+        if planner_prompt_tokens > 0 or planner_completion_tokens > 0:
+            state.metadata["prompt_tokens"] = state.metadata.get("prompt_tokens", 0) + planner_prompt_tokens
+            state.metadata["cached_tokens"] = state.metadata.get("cached_tokens", 0) + planner_cached_tokens
+            state.metadata["completion_tokens"] = state.metadata.get("completion_tokens", 0) + planner_completion_tokens
 
         full_output = "".join(accumulated_text).strip()
 
@@ -269,6 +282,22 @@ class PlannerAgent:
         }
 
 
+def _extract_usage_tokens(obj: Any) -> Dict[str, int]:
+    """Extract integer token counts from an ADK Event or GenAI GenerateContentResponse usage_metadata."""
+    usage = getattr(obj, "usage_metadata", None)
+    if not usage:
+        return {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
+
+    def _safe_int(val: Any) -> int:
+        return int(val) if isinstance(val, (int, float)) and not isinstance(val, bool) else 0
+
+    return {
+        "prompt_tokens": _safe_int(getattr(usage, "prompt_token_count", 0)),
+        "cached_tokens": _safe_int(getattr(usage, "cached_content_token_count", 0)),
+        "completion_tokens": _safe_int(getattr(usage, "candidates_token_count", 0)),
+    }
+
+
 class ExecutorAgent:
     """Service adapter wrapping the ADK Executor Agent with Pydantic JSON Mode & Safety Guardrails."""
     
@@ -284,6 +313,7 @@ class ExecutorAgent:
         self.adk_agent = adk_agent or create_executor_agent(model_name=model_name)
         self.project = project or os.getenv("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
         self.location = location or os.getenv("GOOGLE_CLOUD_LOCATION", LOCATION)
+        self._last_usage_tokens: Dict[str, int] = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
         
         if client is not None:
             self.client = client
@@ -317,6 +347,7 @@ class ExecutorAgent:
             response_mime_type="application/json",
             response_schema=TroubleshootingPlan,
         )
+        self._last_usage_tokens = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
 
         try:
             response = self.client.models.generate_content(
@@ -324,6 +355,7 @@ class ExecutorAgent:
                 contents=strategy_text,
                 config=config,
             )
+            self._last_usage_tokens = _extract_usage_tokens(response)
 
             if hasattr(response, "parsed") and isinstance(response.parsed, TroubleshootingPlan):
                 plan: TroubleshootingPlan = response.parsed
@@ -386,14 +418,22 @@ class ExecutorAgent:
             retrieved_docs=state.retrieved_docs,
         )
 
+        if self._last_usage_tokens["prompt_tokens"] > 0 or self._last_usage_tokens["completion_tokens"] > 0:
+            state.metadata["prompt_tokens"] = state.metadata.get("prompt_tokens", 0) + self._last_usage_tokens["prompt_tokens"]
+            state.metadata["cached_tokens"] = state.metadata.get("cached_tokens", 0) + self._last_usage_tokens["cached_tokens"]
+            state.metadata["completion_tokens"] = state.metadata.get("completion_tokens", 0) + self._last_usage_tokens["completion_tokens"]
+
         state.raw_command = [cmd.model_copy() for cmd in plan.steps]
         state.final_validated_command = plan.steps
         if plan.problem_summary:
             state.metadata["problem_summary"] = plan.problem_summary
+        if plan.error_type:
+            state.metadata["error_type"] = plan.error_type
         if not state.source_citations and plan.source_citations:
             state.source_citations = plan.source_citations
         state.status = "EXECUTED"
         return state
+
 
 
 class RootOrchestrator:

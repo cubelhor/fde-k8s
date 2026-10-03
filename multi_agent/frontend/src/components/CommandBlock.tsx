@@ -3,9 +3,10 @@ import type { KubectlCommand } from '../types';
 
 export interface CommandBlockProps {
   step: KubectlCommand;
+  onCopyCommand?: (command: string, stepNumber: number) => void;
 }
 
-export const CommandBlock: React.FC<CommandBlockProps> = ({ step }) => {
+export const CommandBlock: React.FC<CommandBlockProps> = ({ step, onCopyCommand }) => {
   const [copiedPrimary, setCopiedPrimary] = useState(false);
   const [copiedAlt, setCopiedAlt] = useState(false);
 
@@ -14,24 +15,21 @@ export const CommandBlock: React.FC<CommandBlockProps> = ({ step }) => {
   const handleCopy = async (text: string, isAlt = false) => {
     try {
       await navigator.clipboard.writeText(text);
-      if (isAlt) {
-        setCopiedAlt(true);
-        setTimeout(() => setCopiedAlt(false), 2000);
-      } else {
-        setCopiedPrimary(true);
-        setTimeout(() => setCopiedPrimary(false), 2000);
-      }
     } catch {
       // Fallback if clipboard permission is denied in headless test environments
-      if (isAlt) {
-        setCopiedAlt(true);
-        setTimeout(() => setCopiedAlt(false), 2000);
-      } else {
-        setCopiedPrimary(true);
-        setTimeout(() => setCopiedPrimary(false), 2000);
-      }
     }
+
+    if (isAlt) {
+      setCopiedAlt(true);
+      setTimeout(() => setCopiedAlt(false), 2000);
+    } else {
+      setCopiedPrimary(true);
+      setTimeout(() => setCopiedPrimary(false), 2000);
+    }
+
+    onCopyCommand?.(text, step.step_number);
   };
+
 
   // Tailwind dark-mode SRE styling per danger_level
   const containerClasses =
