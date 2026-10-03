@@ -63,6 +63,15 @@ resource "google_project_iam_member" "secret_manager_accessor" {
   member  = "serviceAccount:${google_service_account.copilot_backend.email}"
 }
 
+# --- Google Cloud Storage Bucket for Kubernetes Hugo Markdown Documentation Corpus ---
+resource "google_storage_bucket" "k8s_docs_corpus" {
+  project                     = var.project_id
+  name                        = "k8s-docs-${var.project_id}"
+  location                    = "EU"
+  uniform_bucket_level_access = true
+  force_destroy               = false
+}
+
 resource "google_project_iam_member" "gcs_chunks_viewer" {
   project = var.project_id
   role    = "roles/storage.objectViewer"

@@ -83,7 +83,7 @@ graph TD
 ### 3.1 Agent 1: `PlannerAgent` (Google ADK)
 - **File:** `multi_agent/backend/src/agents.py` | **Prompt:** `multi_agent/backend/src/prompts/planner_v1.yaml`
 - **Role:** Methodical Kubernetes SRE (`gemini-2.5-pro`).
-- **Grounding:** Invokes `search_kubernetes_documentation(query)` via the Model Context Protocol (MCP) server (`mcp-k8s-docs-server` in `multi_agent/backend/src/mcp_server.py`) backed by Vertex AI Search (`k8s-custom-chunks-store`), with localized hybrid retrieval fallback (`multi_agent/backend/src/retriever.py`).
+- **Grounding:** Invokes `search_kubernetes_documentation(query)` via the Model Context Protocol (MCP) server (`mcp-k8s-docs-server` in `multi_agent/backend/src/mcp_server.py`) backed by Vertex AI Search (`k8s-custom-chunks-store`).
 - **AI Safety Scope Lock:** Refuses non-Kubernetes or off-topic queries with `"Error: Query is out of scope. Please provide a Kubernetes-related issue."`
 
 ### 3.2 Agent 2: `ExecutorAgent` (Google ADK)
@@ -116,9 +116,9 @@ class TroubleshootingPlan(BaseModel):
 ### 3.4 Security, Auth & Observability
 - **SPIFFE Workload Identity & Secret Manager (`multi_agent/backend/src/auth.py`):** Resolves SPIFFE-based identities (`spiffe://<trust-domain>/...`) in the Argolis Sandbox and retrieves external collector API keys (`telemetry-collector-api-key`) from Google Cloud Secret Manager with in-memory caching.
 - **OpenTelemetry, BigQuery & Firestore (`multi_agent/backend/main.py` & `src/telemetry.py`):**
-  - Exports distributed request and agent spans to **Google Cloud Trace**.
-  - Streams prompt/completion token metrics to **BigQuery** (`k8s_copilot_telemetry.token_metrics`).
-  - Persists SRE thumbs-up/down ratings and comments to **Firestore** (`copilot_feedback`).
+  - Exports distributed request and per-agent (`planner_agent_phase`, `executor_agent_phase`) spans to **Google Cloud Trace** and injects `trace_id`/`span_id` into every structured JSON log line.
+  - Streams prompt/cached/completion token counts, cost estimates (`estimated_cost_usd`), per-agent latency (`planner_latency_ms`, `executor_latency_ms`), and `error_type` to **BigQuery** (`k8s_copilot_telemetry`) via Cloud Logging Sink, with a Looker BI SQL view (`v_looker_incident_bi_metrics`).
+  - Persists SRE thumbs-up/down ratings, comments, copied `kubectl` commands, and active session duration (`session_duration_sec`) to **Firestore** (`copilot_feedback`) using `firestore.AsyncClient`.
 
 ---
 
@@ -140,9 +140,8 @@ fde-k8s/
 │   │   │   ├── models.py                       # Pydantic schemas (KubectlCommand, TroubleshootingPlan, IncidentState)
 │   │   │   ├── mcp_server.py                   # FastMCP server (mcp-k8s-docs-server, stdio + SSE)
 │   │   │   ├── tools.py                        # Async ADK tool wrapper for Vertex AI Search
-│   │   │   ├── retriever.py                    # Localized hybrid BM25 + dense vector retriever
 │   │   │   ├── auth.py                         # SPIFFE Workload Identity & Secret Manager client
-│   │   │   ├── telemetry.py                    # BigQuery token sink & Firestore feedback sink
+│   │   │   ├── telemetry.py                    # BigQuery token/latency sink & Firestore async feedback sink
 │   │   │   └── prompts/
 │   │   │       ├── planner_v1.yaml             # Versioned PlannerAgent system instructions & Scope Lock
 │   │   │       └── executor_v1.yaml            # Versioned ExecutorAgent system instructions
@@ -161,13 +160,14 @@ fde-k8s/
 │   │       └── types/index.ts                  # TypeScript interfaces mirroring backend Pydantic models
 │   ├── data_pipeline/
 │   │   ├── hierarchy_chunker.py                # Hierarchy-aware Hugo Markdown & YAML chunker
+│   │   ├── generate_custom_chunks_jsonl.py     # Batch Markdown -> JSONL chunk generator
 │   │   ├── import_to_vertex_search.py          # GCS upload & Vertex AI Search datastore importer
+│   │   ├── verify_vertex_datastore.py          # Vertex AI Search index & retrieval verifier
 │   │   └── evaluate_chunk_quality.py           # Retrieval Hit Rate @ K and MRR evaluation script
 │   └── infra/
-│       ├── main.tf                             # Terraform HCL for Cloud Run, least-privilege IAM, & Secret Manager
+│       ├── main.tf                             # Terraform HCL for Cloud Run, GCS, BigQuery BI View, Firestore, & IAM
 │       ├── variables.tf                        # Terraform input variables (project_id, region, service_name)
 │       └── outputs.tf                          # Cloud Run service URL output
-└── website/                                    # Official Kubernetes Hugo Markdown documentation corpus
 ```
 
 ---
