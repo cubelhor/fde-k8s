@@ -1,2 +1,0 @@
-# Bootstrapping clusters with kubeadm
-

@@ -1,2 +1,0 @@
-# Manage Cluster Daemons
-

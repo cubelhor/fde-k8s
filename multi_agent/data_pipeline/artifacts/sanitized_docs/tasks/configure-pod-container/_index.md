@@ -1,2 +1,0 @@
-# Configure Pods and Containers
-

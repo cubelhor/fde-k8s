@@ -349,66 +349,28 @@ class ExecutorAgent:
         )
         self._last_usage_tokens = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
 
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=strategy_text,
-                config=config,
-            )
-            self._last_usage_tokens = _extract_usage_tokens(response)
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=strategy_text,
+            config=config,
+        )
+        self._last_usage_tokens = _extract_usage_tokens(response)
 
-            if hasattr(response, "parsed") and isinstance(response.parsed, TroubleshootingPlan):
-                plan: TroubleshootingPlan = response.parsed
-            elif hasattr(response, "parsed") and isinstance(response.parsed, dict):
-                plan = TroubleshootingPlan.model_validate(response.parsed)
-            elif hasattr(response, "text") and response.text:
-                plan = TroubleshootingPlan.model_validate_json(response.text)
-            else:
-                raise ValueError(f"Failed to parse TroubleshootingPlan: {response}")
-        except ValueError:
-            raise
-        except Exception as llm_exc:
-            logger.warning(f"Executor Gemini API call fell back ({llm_exc}); synthesizing deterministic plan.")
-            plan = TroubleshootingPlan(
-                problem_summary=f"Automated root-cause triage for: {strategy_text.splitlines()[0][:120]}",
-                steps=[
-                    KubectlCommand(
-                        step_number=1,
-                        title="Inspect Pod Events and Termination Status",
-                        command="kubectl describe pod -l app=payment-api -n prod",
-                        explanation="Inspect container exit codes (e.g. 137 OOMKilled) and recent kubelet events.",
-                        danger_level="LOW",
-                        alternative_command=None,
-                    ),
-                    KubectlCommand(
-                        step_number=2,
-                        title="Fetch Previous Container Crash Logs",
-                        command="kubectl logs -l app=payment-api -n prod --previous --tail=100",
-                        explanation="Retrieve logs from the terminated container instance prior to CrashLoopBackOff.",
-                        danger_level="LOW",
-                        alternative_command=None,
-                    ),
-                    KubectlCommand(
-                        step_number=3,
-                        title="Delete Stuck Pod to Trigger ReplicaSet Recreation",
-                        command="kubectl delete pod -l app=payment-api -n prod",
-                        explanation="Force pod replacement if stuck in terminating or corrupted init state.",
-                        danger_level="LOW",  # Intentionally LOW to demonstrate SafetyGuardian overriding to HIGH
-                        alternative_command="kubectl rollout restart deployment/payment-api -n prod",
-                    ),
-                ],
-                source_citations=[
-                    d.get("url", "https://kubernetes.io/docs/tasks/debug/")
-                    for d in (retrieved_docs or [])
-                    if d.get("url")
-                ] or ["https://kubernetes.io/docs/tasks/debug/"],
-            )
+        if hasattr(response, "parsed") and isinstance(response.parsed, TroubleshootingPlan):
+            plan: TroubleshootingPlan = response.parsed
+        elif hasattr(response, "parsed") and isinstance(response.parsed, dict):
+            plan = TroubleshootingPlan.model_validate(response.parsed)
+        elif hasattr(response, "text") and response.text:
+            plan = TroubleshootingPlan.model_validate_json(response.text)
+        else:
+            raise ValueError(f"Failed to parse TroubleshootingPlan: {response}")
 
         # Post-process every command step through the deterministic Safety Guardian
         for i, step in enumerate(plan.steps):
             plan.steps[i] = SafetyGuardian.evaluate_command(step)
 
         return plan
+
 
     async def execute(self, state: IncidentState) -> IncidentState:
         """Translate checklist steps into structured KubectlCommand objects on IncidentState."""

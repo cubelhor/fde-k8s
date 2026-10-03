@@ -10,5 +10,7 @@ __pycache__/
 htmlcov/
 unused/
 
-# Large cloned Hugo source (if tracking code & pipelines only)
-# website/
+# Large cloned Hugo source and generated data pipeline artifacts (stored in GCS & Vertex AI Search)
+website/
+multi_agent/data_pipeline/artifacts/
+
