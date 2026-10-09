@@ -102,9 +102,8 @@ def get_identity_metadata() -> Dict[str, Any]:
     return {
         "project_id": PROJECT_ID,
         "identity_mode": mode,
-        "agent_spiffe_id": DEFAULT_SPIFFE_ID,
-        "mcp_spiffe_id": MCP_SPIFFE_ID,
         "spiffe_id": DEFAULT_SPIFFE_ID,
+        "mcp_spiffe_id": MCP_SPIFFE_ID,
         "trust_domain": DEFAULT_TRUST_DOMAIN,
         "mcp_server_mode": "remote_microservice" if MCP_SERVER_URL else "in_process",
         "mcp_server_url": MCP_SERVER_URL or "in-process",
@@ -188,10 +187,11 @@ def verify_agent_gateway_token(
     """Hop 3 (Agent Gateway on MCP Server): Verifies that an incoming request to `mcp-k8s-docs-server`
     originates from the authorized Agent Service Account (`k8s-copilot-sa`) and SPIFFE ID.
     """
+    caller_spiffe_id = spiffe_id_header or DEFAULT_SPIFFE_ID
     if not authorization or not authorization.lower().startswith("bearer "):
         if REQUIRE_AGENT_AUTH:
             raise PermissionError("Agent Gateway rejected request: missing Authorization Bearer token.")
-        return {"authorized": True, "mode": "in_process_or_permissive", "caller_spiffe_id": spiffe_id_header or DEFAULT_SPIFFE_ID}
+        return {"authorized": True, "mode": "in_process_or_permissive", "caller_spiffe_id": caller_spiffe_id}
 
     token = authorization.split(" ", 1)[1].strip()
     try:
@@ -216,14 +216,14 @@ def verify_agent_gateway_token(
             "authorized": True,
             "mode": "verified_oidc_agent_identity",
             "caller_email": caller_email or caller_sub,
-            "caller_spiffe_id": spiffe_id_header or DEFAULT_SPIFFE_ID,
+            "caller_spiffe_id": caller_spiffe_id,
         }
     except PermissionError:
         raise
     except Exception as exc:
         if REQUIRE_AGENT_AUTH:
             raise PermissionError(f"Agent Gateway token verification failed: {exc}") from exc
-        return {"authorized": True, "mode": "permissive_fallback", "caller_spiffe_id": spiffe_id_header or DEFAULT_SPIFFE_ID}
+        return {"authorized": True, "mode": "permissive_fallback", "caller_spiffe_id": caller_spiffe_id}
 
 
 def _get_secret_manager_client() -> secretmanager.SecretManagerServiceClient:
@@ -241,17 +241,7 @@ def get_secret(
     project_id: str = PROJECT_ID,
     default_env_var: Optional[str] = None,
 ) -> Optional[str]:
-    """Fetches an API key or telemetry collector token from Google Cloud Secret Manager.
-
-    Args:
-        secret_id: Name of the secret in GCP Secret Manager (e.g. 'telemetry-collector-api-key').
-        version_id: Version of the secret (defaults to 'latest').
-        project_id: GCP Project ID hosting Secret Manager.
-        default_env_var: Optional fallback environment variable name for local development.
-
-    Returns:
-        The decoded secret payload string, or fallback value if offline.
-    """
+    """Fetches an API key or telemetry collector token from Google Cloud Secret Manager."""
     cache_key = f"{project_id}/{secret_id}/{version_id}"
     if cache_key in _secret_cache:
         return _secret_cache[cache_key]
@@ -266,9 +256,9 @@ def get_secret(
         return payload
     except Exception as exc:
         logger.debug(f"Secret Manager lookup for '{secret_id}' fell back to env ({exc}).")
-        if default_env_var and os.getenv(default_env_var):
-            val = os.getenv(default_env_var)
-            _secret_cache[cache_key] = val
-            return val
+        env_val = os.getenv(default_env_var) if default_env_var else None
+        if env_val:
+            _secret_cache[cache_key] = env_val
+            return env_val
         return os.getenv(secret_id.upper().replace("-", "_"))
 

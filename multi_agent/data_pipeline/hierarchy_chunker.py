@@ -14,10 +14,9 @@ Algorithm Architecture:
 """
 
 import re
-import os
 from urllib.parse import urljoin
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Tuple, Optional
+from dataclasses import dataclass
+from typing import List, Dict, Tuple
 from pathlib import Path
 
 
@@ -25,7 +24,6 @@ from pathlib import Path
 class ChunkRecord:
     """Search-ready hierarchical chunk with rich contextual metadata."""
     chunk_id: str
-    doc_path: str
     doc_title: str
     heading_hierarchy: List[str]
     breadcrumb: str
@@ -35,19 +33,6 @@ class ChunkRecord:
     has_code_block: bool
     has_table: bool
     url: str = ""
-
-    # Compatibility aliases
-    @property
-    def breadcrumb_path(self) -> str:
-        return self.breadcrumb
-
-    @property
-    def text(self) -> str:
-        return self.content
-
-
-# Alias for backward compatibility
-HierarchicalChunk = ChunkRecord
 
 
 class HugoShortcodeSanitizer:
@@ -199,19 +184,18 @@ class HierarchyAwareChunker:
         return max(1, len(text) // 4)
 
     @classmethod
+    def _extract_relative_doc_path(cls, file_path: str) -> str:
+        """Extracts the documentation-relative path from a full filesystem path."""
+        p_str = str(file_path).replace("\\", "/")
+        for marker in ["content/en/docs/", "sanitized_docs/", "website/content/en/docs/", "content/en/"]:
+            if marker in p_str:
+                return p_str.split(marker, 1)[1]
+        return ""
+
+    @classmethod
     def to_canonical_url(cls, file_path: str) -> str:
         """Converts a local documentation file path to its canonical https://kubernetes.io/docs/ URL."""
-        p_str = str(file_path).replace("\\", "/")
-        markers = ["content/en/docs/", "sanitized_docs/", "website/content/en/docs/"]
-        rel = None
-        for m in markers:
-            if m in p_str:
-                rel = p_str.split(m, 1)[1]
-                break
-        if not rel and "content/en/" in p_str:
-            rel = p_str.split("content/en/", 1)[1]
-        if not rel:
-            rel = Path(file_path).name
+        rel = cls._extract_relative_doc_path(file_path) or Path(file_path).name
 
         if rel.endswith("/_index.md"):
             rel = rel[:-len("/_index.md")]
@@ -377,12 +361,7 @@ class HierarchyAwareChunker:
         if file_path_obj.name == "admission-controllers.md":
             id_prefix = "admission_ctrl"
         else:
-            rel = None
-            p_str = str(file_path).replace("\\", "/")
-            for m in ["content/en/docs/", "sanitized_docs/", "website/content/en/docs/", "content/en/"]:
-                if m in p_str:
-                    rel = p_str.split(m, 1)[1]
-                    break
+            rel = self._extract_relative_doc_path(file_path)
             if rel:
                 rel_path = Path(rel).with_suffix("")
                 safe_parts = [re.sub(r"[^a-zA-Z0-9_]", "_", part).strip("_") for part in rel_path.parts]
@@ -398,8 +377,24 @@ class HierarchyAwareChunker:
         chunk_counter = 1
         in_code_block = False
 
-        def flush_chunk():
+        def append_chunk(segment_text: str, breadcrumb_label: str):
             nonlocal chunk_counter
+            full_text = f"### [{breadcrumb_label}]\n\n{segment_text}"
+            chunks.append(ChunkRecord(
+                chunk_id=f"{id_prefix}_chunk_{chunk_counter:03d}",
+                doc_title=doc_title,
+                heading_hierarchy=[h["title"] for h in heading_stack if h["title"]],
+                breadcrumb=breadcrumb_label,
+                content=full_text,
+                token_estimate=self.estimate_tokens(full_text),
+                char_count=len(full_text),
+                has_code_block=self.detect_code_block(full_text),
+                has_table=self.detect_table(full_text),
+                url=canonical_url
+            ))
+            chunk_counter += 1
+
+        def flush_chunk():
             if not current_body:
                 return
             body_text = "\n".join(current_body).strip()
@@ -411,44 +406,13 @@ class HierarchyAwareChunker:
 
             # If section fits in token budget -> Emit single chunk
             if est_tokens <= self.max_chunk_tokens:
-                header_prefix = f"### [{breadcrumb_str}]\n\n"
-                full_text = f"{header_prefix}{body_text}"
-                chunks.append(ChunkRecord(
-                    chunk_id=f"{id_prefix}_chunk_{chunk_counter:03d}",
-                    doc_path=canonical_url,
-                    doc_title=doc_title,
-                    heading_hierarchy=[h["title"] for h in heading_stack if h["title"]],
-                    breadcrumb=breadcrumb_str,
-                    content=full_text,
-                    token_estimate=self.estimate_tokens(full_text),
-                    char_count=len(full_text),
-                    has_code_block=self.detect_code_block(full_text),
-                    has_table=self.detect_table(full_text),
-                    url=canonical_url
-                ))
-                chunk_counter += 1
+                append_chunk(body_text, breadcrumb_str)
             else:
                 # Sub-split oversized sections by paragraphs & lines while preserving breadcrumbs & code blocks
                 sub_groups = self._split_oversized(body_text)
                 for p_idx, p_text in enumerate(sub_groups, 1):
                     suffix = f" (Part {p_idx}/{len(sub_groups)})" if len(sub_groups) > 1 else ""
-                    breadcrumb_with_suffix = f"{breadcrumb_str}{suffix}"
-                    header_prefix = f"### [{breadcrumb_with_suffix}]\n\n"
-                    full_text = f"{header_prefix}{p_text}"
-                    chunks.append(ChunkRecord(
-                        chunk_id=f"{id_prefix}_chunk_{chunk_counter:03d}",
-                        doc_path=canonical_url,
-                        doc_title=doc_title,
-                        heading_hierarchy=[h["title"] for h in heading_stack if h["title"]],
-                        breadcrumb=breadcrumb_with_suffix,
-                        content=full_text,
-                        token_estimate=self.estimate_tokens(full_text),
-                        char_count=len(full_text),
-                        has_code_block=self.detect_code_block(full_text),
-                        has_table=self.detect_table(full_text),
-                        url=canonical_url
-                    ))
-                    chunk_counter += 1
+                    append_chunk(p_text, f"{breadcrumb_str}{suffix}")
 
         for line in lines:
             if line.strip().startswith("```"):

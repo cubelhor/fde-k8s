@@ -14,3 +14,15 @@ unused/
 website/
 multi_agent/data_pipeline/artifacts/
 
+# Frontend build & dependencies
+node_modules/
+dist/
+dist-ssr/
+
+# Terraform local state & provider cache
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+

@@ -11,19 +11,17 @@ import os
 import sys
 import json
 import time
-import uuid
 import logging
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, Header, status
+from fastapi import FastAPI, HTTPException, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 
 # Ensure backend directory is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from google.adk.agents import SequentialAgent
 from src.models import (
     DiagnoseRequest,
     DiagnoseResponse,
@@ -129,11 +127,6 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Kubernetes Troubleshooting Copilot Backend.")
 
 
-def get_root_orchestrator() -> SequentialAgent:
-    """Dependency provider for the native ADK `root_orchestrator` (`SequentialAgent`)."""
-    return root_orchestrator
-
-
 # ============================================================================
 # FastAPI Initialization
 # ============================================================================
@@ -199,7 +192,6 @@ async def health_check():
 )
 async def diagnose_incident(
     request: DiagnoseRequest,
-    orchestrator: SequentialAgent = Depends(get_root_orchestrator),
     authorization: Optional[str] = Header(default=None),
     x_goog_iap_jwt_assertion: Optional[str] = Header(default=None),
 ) -> DiagnoseResponse:
@@ -212,7 +204,14 @@ async def diagnose_incident(
     except PermissionError as auth_err:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(auth_err))
 
-    incident_id = request.incident_id or f"inc-{uuid.uuid4().hex[:8]}"
+    # Step 1: Initialize State
+    state = IncidentState(
+        **({"incident_id": request.incident_id} if request.incident_id else {}),
+        raw_logs=request.raw_logs,
+        cluster_context=request.cluster_context,
+        metadata={"user_principal": user_ctx.get("email"), "auth_source": user_ctx.get("source")},
+    )
+    incident_id = state.incident_id
     start_time = time.perf_counter()
     logger.info(f"Starting diagnosis pipeline for incident: {incident_id} (user={user_ctx.get('email')})")
 
@@ -221,20 +220,11 @@ async def diagnose_incident(
         span.set_attribute("cluster.context", request.cluster_context or "unknown")
         span.set_attribute("end_user.email", user_ctx.get("email", "unknown"))
 
-        # Step 1: Initialize State
-        state = IncidentState(
-            incident_id=incident_id,
-            raw_logs=request.raw_logs,
-            cluster_context=request.cluster_context,
-            status="INITIALIZED",
-            metadata={"user_principal": user_ctx.get("email"), "auth_source": user_ctx.get("source")},
-        )
-
         try:
             # Step 2: Execute native ADK SequentialAgent (`planner_agent` -> `executor_agent`) via ADK Runner
             with tracer.start_as_current_span("root_orchestrator_phase"):
                 logger.info(f"[{incident_id}] Running ADK root_orchestrator (SequentialAgent)...")
-                state = await run_agent_pipeline(state, agent=orchestrator)
+                state = await run_agent_pipeline(state)
 
             # Step 3: Finalize Troubleshooting Plan & Error Classification
             plan = state.troubleshooting_plan or TroubleshootingPlan(
@@ -252,14 +242,14 @@ async def diagnose_incident(
 
             # Step 4: Emit token, latency, & error_type metrics via stdout JSON for the Cloud Logging -> BigQuery Sink
             elapsed_latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
-            state.metadata.setdefault("latency_ms", elapsed_latency_ms)
+            state.metadata["latency_ms"] = elapsed_latency_ms
             telemetry_result = record_token_metrics_to_bigquery(
                 incident_id=incident_id,
                 model_name=DEFAULT_MODEL,
                 prompt_tokens=state.metadata.get("prompt_tokens", 0),
                 cached_tokens=state.metadata.get("cached_tokens", 0),
                 completion_tokens=state.metadata.get("completion_tokens", 0),
-                latency_ms=state.metadata.get("latency_ms", elapsed_latency_ms),
+                latency_ms=elapsed_latency_ms,
                 planner_latency_ms=state.metadata.get("planner_latency_ms", 0.0),
                 executor_latency_ms=state.metadata.get("executor_latency_ms", 0.0),
                 checklist_steps=len(state.planner_checklist or []),
@@ -286,7 +276,7 @@ async def diagnose_incident(
                                 "danger_level": s.danger_level,
                                 "alternative_command": s.alternative_command,
                             }
-                            for s in (plan.steps or [])
+                            for s in plan.steps
                         ],
                         "source_citations": plan.source_citations,
                     }
@@ -297,7 +287,6 @@ async def diagnose_incident(
                 success=True,
                 plan=plan,
                 state=state,
-                error=None
             )
 
         except Exception as exc:

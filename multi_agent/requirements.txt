@@ -11,14 +11,11 @@ pydantic>=2.7.0                # Enforces strict JSON schemas for ExecutorAgent 
 # --- Google Cloud Platform Core ---
 google-auth>=2.30.0            # Handles SPIFFE-based identities in the Argolis Sandbox
 google-cloud-secret-manager    # Secures API keys and credentials
-google-cloud-logging           # Asynchronous structured JSON logging to Cloud Logging
-google-cloud-bigquery          # Telemetry sink for token consumption / cost tracking
 google-cloud-firestore         # Storing SRE session metrics and thumbs up/down feedback
 
 # --- Google GenAI & Search ---
 google-adk[a2a]>=2.6.2         # Agent Development Kit framework
 google-genai>=1.0.0            # Google GenAI SDK (Gemini 2.5 Pro/Flash)
-google-cloud-aiplatform        # Vertex AI SDK (Access to Gemini 2.5 Pro and Flash)
 google-cloud-discoveryengine   # Vertex AI Search SDK (Querying the K8s grounded index)
 
 # --- Observability (OpenTelemetry) ---
@@ -29,7 +26,6 @@ opentelemetry-exporter-gcp-trace       # Exports spans to Google Cloud Trace
 
 # --- Data Ingestion & Tooling ---
 pyyaml>=6.0.1                  # Safe YAML loading for externalized agent system prompts
-python-frontmatter             # Parses and strips Hugo Markdown frontmatter for the GCS ingestion pipeline
 mcp>=1.2.0,<2.0.0              # Anthropic Model Context Protocol SDK with FastMCP support
 
 # --- Testing & Evaluation Framework ---

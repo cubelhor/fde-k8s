@@ -20,7 +20,6 @@ DATASTORE_ID = os.getenv("DISCOVERY_ENGINE_DATASTORE_ID", "k8s-custom-chunks-sto
 
 # BigQuery & Firestore Telemetry Sinks
 BQ_DATASET = os.getenv("BQ_TELEMETRY_DATASET", "k8s_copilot_telemetry")
-BQ_TABLE = os.getenv("BQ_TELEMETRY_TABLE", "token_metrics")
 FIRESTORE_COLLECTION = os.getenv("FIRESTORE_FEEDBACK_COLLECTION", "copilot_feedback")
 
 # SPIFFE Workload Identity & Multi-Hop Agent Gateway Configuration

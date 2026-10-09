@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 from src.auth import get_gcp_credentials
-from src.config import PROJECT_ID, BQ_DATASET, BQ_TABLE, FIRESTORE_COLLECTION
+from src.config import PROJECT_ID, BQ_DATASET, FIRESTORE_COLLECTION
 
 logger = logging.getLogger("k8s_copilot_telemetry")
 
@@ -32,7 +32,7 @@ def _get_firestore_async_client() -> Any:
     if _firestore_async_client is None:
         from google.cloud import firestore  # type: ignore
 
-        creds, project = get_gcp_credentials(project_id=PROJECT_ID)
+        creds, project = get_gcp_credentials()
         _firestore_async_client = firestore.AsyncClient(
             project=project or PROJECT_ID,
             credentials=creds,
@@ -75,7 +75,7 @@ def record_token_metrics_to_bigquery(
         "prompt_tokens": prompt_tokens,
         "cached_tokens": cached_tokens,
         "completion_tokens": completion_tokens,
-        "total_tokens": max(prompt_tokens, uncached_prompt_tokens + cached_tokens) + completion_tokens,
+        "total_tokens": max(prompt_tokens, cached_tokens) + completion_tokens,
         "estimated_cost_usd": estimated_cost_usd,
         "latency_ms": round(float(latency_ms), 2),
         "planner_latency_ms": round(float(planner_latency_ms), 2),

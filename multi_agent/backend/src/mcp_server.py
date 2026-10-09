@@ -49,7 +49,7 @@ def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
     except RuntimeError:
         current_loop = None
     if _search_client is None or _search_client_loop is not current_loop:
-        creds, _ = get_gcp_credentials(project_id=PROJECT_ID)
+        creds, _ = get_gcp_credentials()
         _search_client = discoveryengine_v1beta.SearchServiceAsyncClient(credentials=creds)
         _search_client_loop = current_loop
     return _search_client

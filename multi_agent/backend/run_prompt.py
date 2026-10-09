@@ -15,10 +15,12 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from src.models import IncidentState
-from src.agents import root_orchestrator, run_agent_pipeline
+from src.agents import run_agent_pipeline
+
+DEFAULT_CLUSTER_CONTEXT = "gke-prod-eu / namespace: prod"
 
 
-async def run_end_user_prompt(prompt: str, cluster_context: str = "gke-prod-eu / namespace: prod") -> None:
+async def run_end_user_prompt(prompt: str, cluster_context: str = DEFAULT_CLUSTER_CONTEXT) -> None:
     print("=" * 80)
     print(f"USER PROMPT: {prompt}")
     print(f"CONTEXT    : {cluster_context}")
@@ -30,7 +32,7 @@ async def run_end_user_prompt(prompt: str, cluster_context: str = "gke-prod-eu /
         cluster_context=cluster_context,
     )
 
-    final_state = await run_agent_pipeline(state, agent=root_orchestrator)
+    final_state = await run_agent_pipeline(state)
 
     print(f"\n[1] ORCHESTRATOR FINAL STATUS: {final_state.status}")
 
@@ -61,6 +63,6 @@ if __name__ == "__main__":
         default="Pod payment-api-6d8f9b in namespace prod is stuck in CrashLoopBackOff (exit code 137 / OOMKilled) after a memory spike.",
         help="End-user Kubernetes crash log or troubleshooting query",
     )
-    parser.add_argument("--context", default="gke-prod-eu / namespace: prod", help="Cluster and namespace context")
+    parser.add_argument("--context", default=DEFAULT_CLUSTER_CONTEXT, help="Cluster and namespace context")
     args = parser.parse_args()
     asyncio.run(run_end_user_prompt(args.prompt, args.context))

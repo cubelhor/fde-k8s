@@ -53,14 +53,10 @@ export const CommandBlock: React.FC<CommandBlockProps> = ({ step, onCopyCommand 
         ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/50'
         : 'bg-blue-600 text-white ring-2 ring-blue-400/40';
 
-  // Extract inline SafetyGuardian warning if present in explanation
-  const hasInlineWarning = step.explanation.includes('⚠️ WARNING:');
-  const [warningLine, ...restExplanationLines] = hasInlineWarning
-    ? step.explanation.split('\n\n')
-    : ['', step.explanation];
-  const mainExplanation = hasInlineWarning
-    ? restExplanationLines.join('\n\n') || step.explanation
-    : step.explanation;
+  // Strip inline SafetyGuardian warning suffix from main explanation so it is not duplicated below the alert banner
+  const mainExplanation = step.explanation
+    .replace('⚠️ WARNING: Destructive action.', '')
+    .trim();
 
   return (
     <article
@@ -115,8 +111,7 @@ export const CommandBlock: React.FC<CommandBlockProps> = ({ step, onCopyCommand 
                 Safety Guardian Interception — High-Risk Destructive Operation
               </p>
               <p className="text-red-200 leading-relaxed">
-                {warningLine ||
-                  'WARNING: This is a high-risk destructive operation that modifies or deletes cluster state. Verify target namespace and resource replicas before executing in production.'}
+                WARNING: This is a high-risk destructive operation that modifies or deletes cluster state. Verify target namespace and resource replicas before executing in production.
               </p>
             </div>
           </div>

@@ -350,8 +350,8 @@ resource "google_bigquery_table" "looker_bi_dashboard_view" {
         ROUND(AVG(t.executor_latency_ms), 2) AS avg_executor_latency_ms,
         ROUND(AVG(t.estimated_cost_usd), 6) AS avg_cost_per_query_usd,
         ROUND(AVG(t.total_tokens), 1) AS avg_total_tokens,
-        COUNTIF(f.final_rating = 'up') AS thumbs_up_count,
-        COUNTIF(f.final_rating = 'down') AS thumbs_down_count,
+        COUNTIF(f.final_rating = 'thumbs_up') AS thumbs_up_count,
+        COUNTIF(f.final_rating = 'thumbs_down') AS thumbs_down_count,
         SUM(COALESCE(f.commands_copied_count, 0)) AS total_commands_copied,
         ROUND(AVG(f.session_duration_sec), 2) AS avg_sre_session_duration_sec
       FROM token_events t

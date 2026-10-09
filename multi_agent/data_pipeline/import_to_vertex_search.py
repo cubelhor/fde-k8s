@@ -5,17 +5,18 @@ End-to-End Pipeline: Uploads Custom Hierarchical Chunks to GCS & Ingests into Ve
 
 import sys
 import os
-import time
+from google.api_core.exceptions import NotFound
 from google.auth import default
 from google.cloud import storage, discoveryengine
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
+REGION = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
 LOCATION = os.getenv("DISCOVERY_ENGINE_LOCATION", "global")
 COLLECTION_ID = "default_collection"
 DATASTORE_ID = "k8s-custom-chunks-store"
 DATASTORE_DISPLAY_NAME = "Kubernetes Hierarchical Chunks"
 
-BUCKET_NAME = "k8s-docs-fde-k8s-sandbox-dev-505119"
+BUCKET_NAME = f"k8s-docs-{PROJECT_ID}"
 GCS_BLOB_PATH = "custom_chunks/k8s_chunks_custom.jsonl"
 LOCAL_JSONL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts", "k8s_chunks_custom.jsonl")
 
@@ -23,7 +24,6 @@ LOCAL_JSONL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "art
 def get_authenticated_clients():
     try:
         from google.auth.transport.requests import Request
-        from google.api_core.exceptions import NotFound
 
         creds, _ = default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"],
@@ -40,13 +40,11 @@ def get_authenticated_clients():
         print(f"\n❌ [Google Cloud ADC Authentication Required] {e}")
         print("\nYour local Google Cloud Application Default Credentials (ADC) session has expired.")
         print("Please run the following command in your terminal to authenticate via browser, then re-run this script:\n")
-        print("  gcloud auth application-default login --client-id-file=/Users/cuebelhoer/secure/client_secrets.json --scopes=\"https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/drive.readonly\"\n")
+        print("  gcloud auth application-default login\n")
         sys.exit(1)
 
 
 def upload_jsonl_to_gcs(storage_client):
-    from google.api_core.exceptions import NotFound
-
     print("\n" + "=" * 70)
     print("=== STEP 1: UPLOADING CUSTOM CHUNKS TO GOOGLE CLOUD STORAGE ===")
     print("=" * 70)
@@ -55,8 +53,8 @@ def upload_jsonl_to_gcs(storage_client):
     try:
         bucket = storage_client.get_bucket(BUCKET_NAME)
     except NotFound:
-        print(f"Creating bucket gs://{BUCKET_NAME} in EU...")
-        bucket = storage_client.create_bucket(BUCKET_NAME, location="EU")
+        print(f"Creating bucket gs://{BUCKET_NAME} in {REGION}...")
+        bucket = storage_client.create_bucket(BUCKET_NAME, location=REGION)
 
     blob = bucket.blob(GCS_BLOB_PATH)
     print(f"Uploading {LOCAL_JSONL_PATH} -> gs://{BUCKET_NAME}/{GCS_BLOB_PATH}...")

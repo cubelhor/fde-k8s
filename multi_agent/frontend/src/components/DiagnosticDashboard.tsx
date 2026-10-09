@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import type {
   DiagnoseApiResponse,
   IncidentState,
-  KubectlCommand,
   TroubleshootingPlan,
 } from '../types';
 import { CommandBlock } from './CommandBlock';
@@ -130,7 +129,7 @@ export const DiagnosticDashboard: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          incident_logs: trimmedLogs,
+          raw_logs: trimmedLogs,
         }),
       });
 
@@ -143,53 +142,16 @@ export const DiagnosticDashboard: React.FC = () => {
 
       const data: DiagnoseApiResponse = await response.json();
 
-      if (data.success === false || data.error) {
+      if (!data.success || data.error || !data.plan || !data.state) {
         throw new Error(data.error || 'The diagnosis pipeline returned an error.');
       }
 
-      // Normalize response whether backend returns { plan, state } envelope or flat state/plan
-      const resolvedState: IncidentState = data.state || {
-        incident_id: data.incident_id || `inc-${Date.now().toString(36)}`,
-        raw_logs: trimmedLogs,
-        status: 'COMPLETED',
-        final_validated_command: data.plan?.steps || data.steps || [],
-        source_citations:
-          data.plan?.source_citations || data.source_citations || [],
-        plan: data.plan || null,
-      };
-
-      const resolvedSteps: KubectlCommand[] =
-        data.plan?.steps ||
-        data.steps ||
-        resolvedState.final_validated_command ||
-        [];
-
-      const resolvedCitations: string[] =
-        data.plan?.source_citations ||
-        data.source_citations ||
-        resolvedState.source_citations ||
-        [];
-
-      const resolvedSummary: string =
-        data.plan?.problem_summary ||
-        data.problem_summary ||
-        (typeof resolvedState.metadata?.problem_summary === 'string'
-          ? resolvedState.metadata.problem_summary
-          : '') ||
-        `Root-cause analysis completed for incident ${resolvedState.incident_id || 'session'}.`;
-
-      const newIncidentId =
-        resolvedState.incident_id || `inc-${Date.now().toString(36)}`;
-      activeIncidentIdRef.current = newIncidentId;
+      activeIncidentIdRef.current = data.state.incident_id;
       accumulatedActiveMsRef.current = 0;
       visibleStartMsRef.current = Date.now();
 
-      setIncidentState(resolvedState);
-      setTroubleshootingPlan({
-        problem_summary: resolvedSummary,
-        steps: resolvedSteps,
-        source_citations: resolvedCitations,
-      });
+      setIncidentState(data.state);
+      setTroubleshootingPlan(data.plan);
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -202,14 +164,12 @@ export const DiagnosticDashboard: React.FC = () => {
   };
 
   const handleFeedback = async (rating: 'thumbs_up' | 'thumbs_down') => {
+    const activeIncidentId = incidentState?.incident_id || activeIncidentIdRef.current;
+    if (!activeIncidentId) return;
+
     setFeedbackSubmitting(true);
     setFeedbackRating(rating);
     setFeedbackStatus(null);
-
-    const activeIncidentId =
-      incidentState?.incident_id ||
-      activeIncidentIdRef.current ||
-      `inc-${Date.now().toString(36)}`;
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/feedback`, {
@@ -247,10 +207,8 @@ export const DiagnosticDashboard: React.FC = () => {
   };
 
   const handleCopyCommand = async (command: string, stepNumber: number) => {
-    const activeIncidentId =
-      incidentState?.incident_id ||
-      activeIncidentIdRef.current ||
-      `inc-${Date.now().toString(36)}`;
+    const activeIncidentId = incidentState?.incident_id || activeIncidentIdRef.current;
+    if (!activeIncidentId) return;
     try {
       await fetch(`${API_BASE_URL}/api/v1/feedback`, {
         method: 'POST',

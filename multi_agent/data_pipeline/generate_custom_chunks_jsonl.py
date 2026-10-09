@@ -5,11 +5,10 @@ Converts all Markdown files from /website into Vertex AI Search ingestion-ready 
 
 Output Format (JSONL):
 {
-  "_id": "<chunk_id>",
+  "id": "<chunk_id>",
   "title": "<doc_title>",
   "breadcrumb": "<breadcrumb_path>",
   "heading_hierarchy": ["H1", "H2", ...],
-  "doc_path": "https://kubernetes.io/docs/...",
   "url": "https://kubernetes.io/docs/...",
   "content": "### [H1 > H2]\n\n...",
   "token_estimate": 245,
@@ -20,13 +19,12 @@ Output Format (JSONL):
 
 import sys
 import os
-import re
 import json
 import time
 import argparse
 import statistics
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict
 
 # Ensure pipeline directory is in path
 PIPELINE_DIR = Path(__file__).resolve().parent
@@ -36,7 +34,6 @@ from hierarchy_chunker import HierarchyAwareChunker, ChunkRecord
 
 DEFAULT_DOCS_DIR = REPO_ROOT / "website" / "content" / "en" / "docs"
 DEFAULT_OUTPUT_JSONL = PIPELINE_DIR / "artifacts" / "k8s_chunks_custom.jsonl"
-UNUSED_OUTPUT_JSONL = REPO_ROOT / "unused" / "k8s_chunks_custom.jsonl"
 
 
 def parse_args():
@@ -54,12 +51,6 @@ def parse_args():
         type=str,
         default=str(DEFAULT_OUTPUT_JSONL),
         help=f"Output JSONL path (default: {DEFAULT_OUTPUT_JSONL})"
-    )
-    parser.add_argument(
-        "--sync-unused",
-        action="store_true",
-        default=True,
-        help="Also sync output to unused/k8s_chunks_custom.jsonl (default: True)"
     )
     parser.add_argument(
         "--min-tokens",
@@ -88,7 +79,6 @@ def process_documentation(
     min_tokens: int = 80,
     target_tokens: int = 550,
     max_tokens: int = 1000,
-    sync_unused: bool = True
 ):
     print("=" * 80)
     print("=== KUBERNETES DOCUMENTATION BATCH HIERARCHICAL CHUNKER ===")
@@ -139,13 +129,10 @@ def process_documentation(
 
                     record = {
                         "id": c.chunk_id,
-                        "_id": c.chunk_id,
                         "title": c.doc_title,
                         "breadcrumb": c.breadcrumb,
                         "heading_hierarchy": c.heading_hierarchy,
-                        "uri": c.url,
                         "url": c.url,
-                        "doc_path": c.doc_path,
                         "content": c.content,
                         "token_estimate": c.token_estimate,
                         "has_code_block": c.has_code_block,
@@ -170,12 +157,6 @@ def process_documentation(
 
     total_time = time.time() - start_time
     file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
-
-    # Optional sync to unused/k8s_chunks_custom.jsonl
-    if sync_unused and UNUSED_OUTPUT_JSONL.parent.exists():
-        import shutil
-        shutil.copyfile(output_path, UNUSED_OUTPUT_JSONL)
-        print(f"✓ Synced output to: {UNUSED_OUTPUT_JSONL}")
 
     print("\n" + "=" * 80)
     print("=== BATCH CHUNKING COMPLETE ===")
@@ -211,7 +192,7 @@ def process_documentation(
     with open(output_path, "r", encoding="utf-8") as f:
         first_line = f.readline()
         parsed_first = json.loads(first_line)
-        print(f"Record #1: ID='{parsed_first.get('_id')}', Title='{parsed_first.get('title')}', Tokens={parsed_first.get('token_estimate')}")
+        print(f"Record #1: ID='{parsed_first.get('id')}', Title='{parsed_first.get('title')}', Tokens={parsed_first.get('token_estimate')}")
         print(f"           URL={parsed_first.get('url')}")
         print(f"           Breadcrumb='{parsed_first.get('breadcrumb')}'")
 
@@ -227,5 +208,4 @@ if __name__ == "__main__":
         min_tokens=args.min_tokens,
         target_tokens=args.target_tokens,
         max_tokens=args.max_tokens,
-        sync_unused=args.sync_unused
     )

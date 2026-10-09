@@ -7,7 +7,6 @@ Architecture:
 """
 
 import time
-import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -90,7 +89,7 @@ def executor_after_callback(callback_context: CallbackContext) -> Optional[types
         )
 
         # Run deterministic SafetyGuardian across all steps and merge grounded citations
-        plan.steps = [SafetyGuardian.evaluate_command(cmd.model_copy()) for cmd in plan.steps]
+        plan.steps = [SafetyGuardian.evaluate_command(cmd) for cmd in plan.steps]
         plan.source_citations = list(
             callback_context.state.get("source_citations")
             or plan.source_citations
@@ -181,7 +180,7 @@ async def run_agent_pipeline(
     """Execute an ADK Agent or SequentialAgent (`root_orchestrator` or `planner_agent`) via ADK `Runner` and return hydrated `IncidentState`."""
     runner = _RUNNERS.get(agent.name, default_runner) if agent is not None else default_runner
 
-    base_session_id = state.incident_id or f"inc-{uuid.uuid4().hex[:8]}"
+    base_session_id = state.incident_id
     user_id = "sre-agent"
     initial_state = state.model_dump()
 
@@ -190,13 +189,13 @@ async def run_agent_pipeline(
         parts=[types.Part.from_text(text=state.raw_logs)],
     )
 
-    session_id = base_session_id
     prompt_tokens = 0
     cached_tokens = 0
     completion_tokens = 0
     t_start = time.perf_counter()
     t_planner_end = None
     t_executor_end = None
+    updated_session = None
 
     for attempt in range(3):
         session_id = base_session_id if attempt == 0 else f"{base_session_id}-retry{attempt}"
@@ -222,16 +221,18 @@ async def run_agent_pipeline(
                 prompt_tokens += tokens["prompt_tokens"]
                 cached_tokens += tokens["cached_tokens"]
                 completion_tokens += tokens["completion_tokens"]
-            break
+
+            updated_session = await session_service.get_session(
+                app_name=APP_NAME,
+                user_id=user_id,
+                session_id=session_id,
+            )
+            if updated_session and updated_session.state.get("planner_checklist"):
+                break
         except ValueError as err:
             if attempt == 2:
                 raise err
 
-    updated_session = await session_service.get_session(
-        app_name=APP_NAME,
-        user_id=user_id,
-        session_id=session_id,
-    )
     session_state_dict = dict(updated_session.state) if updated_session else initial_state
 
     meta = dict(session_state_dict.get("metadata") or {})
