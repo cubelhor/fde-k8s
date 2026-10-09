@@ -2,47 +2,69 @@
 
 Integrates the MCP Server (`mcp-k8s-docs-server`) and Vertex AI Search
 (`k8s-custom-chunks-store`) for authoritative documentation retrieval
-using persistent gRPC client singletons.
+using ADK's native `ToolContext.state`.
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional
+import httpx
+from google.adk.tools import ToolContext
 
+from src.auth import fetch_agent_id_token
+from src.config import DEFAULT_SPIFFE_ID
+import src.config as config_mod
 from src.mcp_server import (
     mcp_server,
     mcp_search_kubernetes_documentation,
-    PROJECT_ID,
     DATASTORE_ID,
 )
 
-# Tracks the most recent documentation chunks retrieved via MCP / Vertex AI Search
-_recent_retrieved_chunks: List[Dict[str, Any]] = []
+
+async def _call_remote_mcp_microservice(mcp_url: str, query: str, top_k: int = 3) -> Dict[str, Any]:
+    """Invokes the standalone `mcp-k8s-docs-server` microservice using the Agent's OIDC/SPIFFE identity."""
+    headers = {"X-Agent-Spiffe-Id": DEFAULT_SPIFFE_ID}
+    token = fetch_agent_id_token(target_audience=mcp_url)
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        resp = await client.get(
+            f"{mcp_url}/api/v1/mcp/search",
+            params={"query": query, "top_k": top_k},
+            headers=headers,
+        )
+        resp.raise_for_status()
+        return resp.json()
 
 
-def get_and_clear_recent_chunks() -> List[Dict[str, Any]]:
-    """Returns and resets the buffer of chunks retrieved during the current agent turn."""
-    global _recent_retrieved_chunks
-    items = list(_recent_retrieved_chunks)
-    _recent_retrieved_chunks.clear()
-    return items
+async def search_kubernetes_documentation(
+    query: str,
+    tool_context: Optional[ToolContext] = None,
+) -> Dict[str, Any]:
+    """Search official Kubernetes reference documentation via `mcp-k8s-docs-server`.
 
-
-async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
-    """Search official Kubernetes reference documentation via `mcp-k8s-docs-server` (`search_kubernetes_documentation`).
-
-    Args:
-        query: Specific technical query or error keyword (e.g. 'CrashLoopBackOff', 'OOMKilled', 'CoreDNS').
-
-    Returns:
-        A dictionary containing relevant documentation snippets, titles, breadcrumbs, and source URLs.
+    Supports both:
+    - Standalone MCP Microservice mode (when `MCP_SERVER_URL` is configured, authenticating
+      with the Agent's `k8s-copilot-sa` OIDC ID token and `X-Agent-Spiffe-Id` header).
+    - Co-located in-process mode (for low-latency local development and sandbox execution).
     """
-    global _recent_retrieved_chunks
-    mcp_response = await mcp_search_kubernetes_documentation(query=query, top_k=3)
-    results = []
-    for chunk in mcp_response.get("results", []):
-        entry = dict(chunk)
-        entry.setdefault("mcp_server", mcp_server.name)
-        results.append(entry)
-        _recent_retrieved_chunks.append(entry)
+    active_mcp_url = config_mod.MCP_SERVER_URL
+    if active_mcp_url:
+        mcp_response = await _call_remote_mcp_microservice(active_mcp_url, query=query, top_k=3)
+    else:
+        mcp_response = await mcp_search_kubernetes_documentation(query=query, top_k=3)
+
+    results = mcp_response.get("results", [])
+
+    if tool_context is not None:
+        existing_citations = list(tool_context.state.get("source_citations") or [])
+        for entry in results:
+            url = entry.get("url")
+            bcrumb = entry.get("breadcrumb")
+            if url:
+                citation_str = f"{bcrumb} ({url})" if bcrumb and bcrumb not in url else url
+                if citation_str not in existing_citations:
+                    existing_citations.append(citation_str)
+        tool_context.state["source_citations"] = existing_citations
 
     return {
         "status": mcp_response.get("status", "success"),
@@ -51,4 +73,5 @@ async def search_kubernetes_documentation(query: str) -> Dict[str, Any]:
         "query": query,
         "results": results,
     }
+
 

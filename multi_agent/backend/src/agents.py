@@ -1,292 +1,165 @@
-"""First-Class ADK Agents for the Kubernetes Troubleshooting Copilot.
+"""Native Google ADK Agents for the Kubernetes Troubleshooting Copilot.
 
 Architecture:
-- PlannerAgent (ADK Agent): Analyzes crash logs, queries K8s docs via Vertex AI Search, builds logical debugging plans.
-- ExecutorAgent (ADK Agent): Translates planner steps into structured kubectl commands adhering to TroubleshootingPlan schema.
-- SafetyGuardian: Deterministic risk monitor enforcing the LOW/MEDIUM/HIGH policy matrix.
-- RootOrchestrator (ADK Agent): Coordinates multi-agent delegation across Planner and Executor subagents.
+- `planner_agent` (ADK Agent): Analyzes crash logs, queries K8s docs via Vertex AI Search (`search_kubernetes_documentation`), and writes `planner_checklist` to `session.state`.
+- `executor_agent` (ADK Agent): Reads `{planner_checklist}` from `session.state` and generates structured `kubectl` commands using `output_schema=TroubleshootingPlan`, followed by deterministic `SafetyGuardian` validation in `after_agent_callback`.
+- `root_orchestrator` (ADK SequentialAgent): Coordinates `planner_agent` -> `executor_agent` in a single ADK `Runner` execution.
 """
 
-import os
-import re
-import json
 import time
 import uuid
-import logging
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 
 import yaml
-from opentelemetry import trace
-from google import genai
 from google.genai import types
-from google.adk.agents import Agent, SequentialAgent
-from google.adk.tools import FunctionTool
+from google.adk.agents import Agent, SequentialAgent, BaseAgent
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import Gemini
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 
-from src.models import IncidentState, TroubleshootingPlan, KubectlCommand
+import src.config  # noqa: F401 - initializes Vertex AI environment defaults
+from src.models import IncidentState, TroubleshootingPlan
 from src.guardrails import SafetyGuardian
-from src.tools import search_kubernetes_documentation, get_and_clear_recent_chunks
+from src.tools import search_kubernetes_documentation
 
-logger = logging.getLogger("k8s_agents")
-tracer = trace.get_tracer(__name__)
-
-# --- Default Environment Configurations ---
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
-LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "TRUE")
-os.environ.setdefault("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
-os.environ.setdefault("GOOGLE_CLOUD_LOCATION", LOCATION)
-
+APP_NAME = "k8s_troubleshooting_copilot"
+DEFAULT_MODEL = "gemini-2.5-pro"
+EXECUTOR_MODEL = "gemini-2.5-flash"
+SCOPE_LOCK_PREFIX = "Error: Query is out of scope"
 PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
-SCOPE_LOCK_MESSAGE = "Error: Query is out of scope. Please provide a Kubernetes-related issue."
-_K8S_DOMAIN_PATTERN = re.compile(
-    r"\b(k8s|kubernetes|kubectl|pod|pods|node|nodes|deployment|service|ingress|configmap|secret|"
-    r"namespace|container|crashloopbackoff|oomkilled|imagepullbackoff|pending|evicted|kubelet|"
-    r"coredns|pvc|persistentvolume|statefulset|daemonset|replicaset|helm|gke|cluster|rbac|etcd|"
-    r"cni|calico|cilium|probe|liveness|readiness|exit\s+code|memory|cpu|crash|error|exception|log|logs)\b",
-    re.IGNORECASE,
+
+RETRY_OPTIONS = types.HttpRetryOptions(
+    attempts=6,
+    initial_delay=4.0,
+    max_delay=45.0,
+    exp_base=2.0,
 )
 
 
 def load_prompt(filename: str) -> str:
-    """Load a versioned system instruction prompt string from `backend/src/prompts/<filename>` using `yaml.safe_load`."""
-    safe_name = os.path.basename(filename)
-    prompts_root = PROMPTS_DIR.resolve()
-    prompt_path = (prompts_root / safe_name).resolve()
-    if prompt_path.parent != prompts_root or not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt YAML file not found: {prompt_path}")
-
-    with open(prompt_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-
-    if isinstance(data, dict):
-        instruction = data.get("system_instruction") or data.get("instruction") or data.get("prompt")
-        if isinstance(instruction, str) and instruction.strip():
-            return instruction.strip()
-    elif isinstance(data, str) and data.strip():
-        return data.strip()
-
-    raise ValueError(f"Invalid or empty prompt schema in {prompt_path}")
+    """Load a versioned system instruction prompt string from `backend/src/prompts/<filename>`."""
+    with open(PROMPTS_DIR / filename, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)["system_instruction"].strip()
 
 
 # ============================================================================
-# 1. First-Class ADK Agent Factories
+# 1. Native ADK Lifecycle Callbacks (Checklist Normalization, Scope Lock & SafetyGuardian)
 # ============================================================================
 
-def create_planner_agent(
-    model_name: str = "gemini-2.5-pro",
-    tools: Optional[List[Any]] = None,
-) -> Agent:
-    """Create the First-Class ADK Planner Agent.
-    
-    Role: Methodical Kubernetes SRE.
-    Goal: Analyze crash logs, query official docs via Vertex AI Search, and build a logical debugging plan.
-    """
-    search_tool = FunctionTool(func=search_kubernetes_documentation)
-    agent_tools = tools if tools is not None else [search_tool]
-
-    return Agent(
-        model=model_name,
-        name="planner_agent",
-        description="Methodical Kubernetes SRE agent that analyzes crash logs and queries K8s reference docs.",
-        instruction=load_prompt("planner_v1.yaml"),
-        tools=agent_tools,
-    )
-
-
-def create_executor_agent(
-    model_name: str = "gemini-2.5-pro",
-    tools: Optional[List[Any]] = None,
-) -> Agent:
-    """Create the First-Class ADK Executor Agent.
-    
-    Role: Deterministic Kubernetes CLI Generator.
-    Goal: Translate abstract strategy into specific kubectl commands conforming to TroubleshootingPlan.
-    """
-    agent_tools = tools if tools is not None else []
-
-    return Agent(
-        model=model_name,
-        name="executor_agent",
-        description="Deterministic Kubernetes CLI Generator translating strategies into structured kubectl commands.",
-        instruction=load_prompt("executor_v1.yaml"),
-        tools=agent_tools,
-    )
-
-
-def create_root_orchestrator(
-    model_name: str = "gemini-2.5-pro",
-    planner: Optional[Agent] = None,
-    executor: Optional[Agent] = None,
-) -> SequentialAgent:
-    """Create the deterministic ADK SequentialAgent Root Orchestrator coordinating Planner and Executor subagents."""
-    p_agent = planner or create_planner_agent(model_name=model_name)
-    e_agent = executor or create_executor_agent(model_name=model_name)
-
-    # Detach from any prior parent SequentialAgent so subagents can be safely re-bound
-    if getattr(p_agent, "parent_agent", None) is not None:
-        p_agent.parent_agent = None
-    if getattr(e_agent, "parent_agent", None) is not None:
-        e_agent.parent_agent = None
-
-    return SequentialAgent(
-        name="k8s_troubleshooting_orchestrator",
-        description="Root Incident Commander for Kubernetes Troubleshooting coordinating PlannerAgent followed by ExecutorAgent.",
-        sub_agents=[p_agent, e_agent],
-    )
-
-
-# ============================================================================
-# 3. High-Level Class Adapters (for FastAPI & Structured Invocations)
-# ============================================================================
-
-class PlannerAgent:
-    """Service adapter executing the first-class ADK Planner Agent via ADK Runner and Vertex AI Search."""
-    
-    def __init__(
-        self,
-        model_name: str = "gemini-2.5-pro",
-        adk_agent: Optional[Agent] = None,
-        session_service: Optional[InMemorySessionService] = None,
-        runner: Optional[Runner] = None,
-        project: Optional[str] = None,
-        location: Optional[str] = None,
-    ):
-        self.model_name = model_name
-        self.adk_agent = adk_agent or create_planner_agent(model_name=model_name)
-        self.session_service = session_service or InMemorySessionService()
-        self.runner = runner
-        self.project = project or os.getenv("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
-        self.location = location or os.getenv("GOOGLE_CLOUD_LOCATION", LOCATION)
-
-    async def plan(self, state: IncidentState) -> IncidentState:
-        """Analyze crash logs, execute ADK tool loop (mcp-k8s-docs-server / Vertex AI Search), and populate state."""
-        # AI Safety Scope Lock: Reject non-Kubernetes / off-topic queries immediately
-        if not _K8S_DOMAIN_PATTERN.search(state.raw_logs or ""):
-            state.planner_checklist = [SCOPE_LOCK_MESSAGE]
-            state.retrieved_docs = []
-            state.source_citations = []
-            state.status = "PLANNING_COMPLETED"
-            return state
-
-        session_id = state.incident_id or f"session-{uuid.uuid4().hex[:8]}"
-        user_id = "sre-agent"
-        app_name = "k8s_troubleshooting_copilot"
-
-        # Clear any stale buffer before running the Planner turn
-        get_and_clear_recent_chunks()
-
-        # Ensure session exists in session service
-        try:
-            await self.session_service.create_session(
-                app_name=app_name,
-                user_id=user_id,
-                session_id=session_id
-            )
-        except Exception:
-            pass  # Session may already exist
-
-        runner = self.runner or Runner(
-            agent=self.adk_agent,
-            session_service=self.session_service,
-            app_name=app_name
-        )
-
-        prompt_text = (
-            f"Incident Cluster Context: {state.cluster_context or 'Unknown'}\n"
-            f"Raw Crash Logs / Events:\n{state.raw_logs}\n\n"
-            "Analyze these logs and formulate a clear, numbered diagnostic checklist of root-cause troubleshooting steps."
-        )
-
-        message = types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=prompt_text)]
-        )
-
-        accumulated_text = []
-        planner_prompt_tokens = 0
-        planner_cached_tokens = 0
-        planner_completion_tokens = 0
-
-        try:
-            async for event in runner.run_async(
-                user_id=user_id,
-                session_id=session_id,
-                new_message=message
-            ):
-                usage_tokens = _extract_usage_tokens(event)
-                planner_prompt_tokens += usage_tokens["prompt_tokens"]
-                planner_cached_tokens += usage_tokens["cached_tokens"]
-                planner_completion_tokens += usage_tokens["completion_tokens"]
-
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if getattr(part, "text", None):
-                            accumulated_text.append(part.text)
-        except Exception as llm_exc:
-            logger.warning(f"ADK Runner LLM call fell back ({llm_exc}); retrieving MCP docs directly.")
-
-        if planner_prompt_tokens > 0 or planner_completion_tokens > 0:
-            state.metadata["prompt_tokens"] = state.metadata.get("prompt_tokens", 0) + planner_prompt_tokens
-            state.metadata["cached_tokens"] = state.metadata.get("cached_tokens", 0) + planner_cached_tokens
-            state.metadata["completion_tokens"] = state.metadata.get("completion_tokens", 0) + planner_completion_tokens
-
-        full_output = "".join(accumulated_text).strip()
-
-        if SCOPE_LOCK_MESSAGE in full_output:
-            state.planner_checklist = [SCOPE_LOCK_MESSAGE]
-            state.retrieved_docs = []
-            state.source_citations = []
-            state.status = "PLANNING_COMPLETED"
-            return state
-
-        # Collect chunks retrieved via mcp-k8s-docs-server during the ADK turn
-        retrieved_chunks = get_and_clear_recent_chunks()
-        if not retrieved_chunks:
-            # Ensure MCP Vertex AI Search retrieval runs even if the runner was mocked or bypassed tool invocation
-            mcp_res = await search_kubernetes_documentation(state.raw_logs)
-            retrieved_chunks = mcp_res.get("results", [])
-            get_and_clear_recent_chunks()
-
-        state.retrieved_docs = retrieved_chunks
-        citations = []
-        for doc in retrieved_chunks:
-            url = doc.get("url") or doc.get("doc_path")
-            bcrumb = doc.get("breadcrumb") or doc.get("title")
-            if url:
-                citation_str = f"{bcrumb} ({url})" if bcrumb and bcrumb not in url else url
-                if citation_str not in citations:
-                    citations.append(citation_str)
-        state.source_citations = citations
-
-        checklist_items = [
-            line.strip() for line in full_output.split("\n") if line.strip()
+def planner_after_callback(callback_context: CallbackContext) -> Optional[types.Content]:
+    """Normalize `planner_checklist` into a list of step strings in `session.state`."""
+    raw_checklist = callback_context.state.get("planner_checklist")
+    if isinstance(raw_checklist, str):
+        callback_context.state["planner_checklist"] = [
+            line.strip() for line in raw_checklist.splitlines() if line.strip()
         ]
+    callback_context.state["status"] = "PLANNING_COMPLETED"
+    return None
 
-        state.planner_checklist = checklist_items if checklist_items else ([full_output] if full_output else [
-            f"1. Inspect pod status and events for: {state.raw_logs[:80]}",
-            f"2. Review grounded documentation ({citations[0] if citations else 'Kubernetes Debugging Guide'}).",
-            "3. Verify container exit codes, resource limits, and formulate safe remediation commands."
-        ])
-        state.status = "PLANNING_COMPLETED"
-        return state
 
-    async def generate_plan(self, incident_query: str, cluster_context: Optional[str] = None) -> Dict[str, Any]:
-        """Helper method for direct E2E integration tests."""
-        state = IncidentState(raw_logs=incident_query, cluster_context=cluster_context)
-        state = await self.plan(state)
-        return {
-            "plan": "\n".join(state.planner_checklist or []),
-            "retrieved_docs": state.retrieved_docs or [],
-            "source_citations": state.source_citations or [],
-            "state": state,
-        }
+def executor_before_callback(callback_context: CallbackContext) -> Optional[types.Content]:
+    """Short-circuit the Executor LLM call if `planner_agent` triggered the Scope Lock."""
+    checklist = callback_context.state.get("planner_checklist") or []
+    first_item = checklist[0] if isinstance(checklist, list) and checklist else str(checklist)
+    if SCOPE_LOCK_PREFIX in first_item:
+        out_of_scope_plan = TroubleshootingPlan(
+            problem_summary=first_item,
+            error_type="GeneralClusterAnomaly",
+            steps=[],
+            source_citations=["https://kubernetes.io/docs/home/"],
+        )
+        callback_context.state["troubleshooting_plan"] = out_of_scope_plan.model_dump()
+        callback_context.state["status"] = "COMPLETED"
+        return types.Content(
+            role="model",
+            parts=[types.Part.from_text(text=out_of_scope_plan.model_dump_json())],
+        )
+    return None
 
+
+def executor_after_callback(callback_context: CallbackContext) -> Optional[types.Content]:
+    """Validate `TroubleshootingPlan` and run `SafetyGuardian` on every generated command."""
+    raw_plan = callback_context.state.get("troubleshooting_plan")
+    if raw_plan:
+        plan = (
+            TroubleshootingPlan.model_validate_json(raw_plan)
+            if isinstance(raw_plan, str)
+            else TroubleshootingPlan.model_validate(raw_plan)
+        )
+
+        # Run deterministic SafetyGuardian across all steps and merge grounded citations
+        plan.steps = [SafetyGuardian.evaluate_command(cmd.model_copy()) for cmd in plan.steps]
+        plan.source_citations = list(
+            callback_context.state.get("source_citations")
+            or plan.source_citations
+            or [
+                "https://kubernetes.io/docs/tasks/debug/",
+                "https://kubernetes.io/docs/reference/kubectl/",
+            ]
+        )
+        callback_context.state["source_citations"] = plan.source_citations
+        callback_context.state["troubleshooting_plan"] = plan.model_dump()
+
+    callback_context.state["status"] = "COMPLETED"
+    return None
+
+
+# ============================================================================
+# 2. Native ADK Agent Definitions
+# ============================================================================
+
+planner_agent = Agent(
+    model=Gemini(model=DEFAULT_MODEL, retry_options=RETRY_OPTIONS),
+    name="planner_agent",
+    description="Methodical Kubernetes SRE agent that analyzes crash logs and queries K8s reference docs.",
+    instruction=load_prompt("planner_v1.yaml"),
+    tools=[search_kubernetes_documentation],
+    output_key="planner_checklist",
+    after_agent_callback=planner_after_callback,
+)
+
+executor_agent = Agent(
+    model=Gemini(model=EXECUTOR_MODEL, retry_options=RETRY_OPTIONS),
+    name="executor_agent",
+    description="Deterministic Kubernetes CLI Generator translating strategies into structured kubectl commands.",
+    instruction=load_prompt("executor_v1.yaml"),
+    output_schema=TroubleshootingPlan,
+    output_key="troubleshooting_plan",
+    before_agent_callback=executor_before_callback,
+    after_agent_callback=executor_after_callback,
+)
+
+root_orchestrator = SequentialAgent(
+    name="k8s_troubleshooting_orchestrator",
+    description="Root Incident Commander for Kubernetes Troubleshooting coordinating planner_agent followed by executor_agent.",
+    sub_agents=[planner_agent, executor_agent],
+)
+
+session_service = InMemorySessionService()
+default_runner = Runner(
+    agent=root_orchestrator,
+    session_service=session_service,
+    app_name=APP_NAME,
+)
+planner_runner = Runner(
+    agent=planner_agent.clone(),
+    session_service=session_service,
+    app_name=APP_NAME,
+)
+_RUNNERS: Dict[str, Runner] = {
+    root_orchestrator.name: default_runner,
+    planner_agent.name: planner_runner,
+}
+
+
+# ============================================================================
+# 3. Native ADK Runner Execution Helper
+# ============================================================================
 
 def _extract_usage_tokens(obj: Any) -> Dict[str, int]:
-    """Extract integer token counts from an ADK Event or GenAI GenerateContentResponse usage_metadata."""
+    """Extract integer token counts from an ADK Event usage_metadata."""
     usage = getattr(obj, "usage_metadata", None)
     if not usage:
         return {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
@@ -301,159 +174,76 @@ def _extract_usage_tokens(obj: Any) -> Dict[str, int]:
     }
 
 
-class ExecutorAgent:
-    """Service adapter wrapping the ADK Executor Agent with Pydantic JSON Mode & Safety Guardrails."""
-    
-    def __init__(
-        self,
-        model_name: str = "gemini-2.5-pro",
-        client: Optional[genai.Client] = None,
-        adk_agent: Optional[Agent] = None,
-        project: Optional[str] = None,
-        location: Optional[str] = None,
-    ):
-        self.model_name = model_name
-        self.adk_agent = adk_agent or create_executor_agent(model_name=model_name)
-        self.project = project or os.getenv("GOOGLE_CLOUD_PROJECT", PROJECT_ID)
-        self.location = location or os.getenv("GOOGLE_CLOUD_LOCATION", LOCATION)
-        self._last_usage_tokens: Dict[str, int] = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
-        
-        if client is not None:
-            self.client = client
-        else:
-            self.client = genai.Client(
-                vertexai=True,
-                project=self.project,
-                location=self.location
-            )
+async def run_agent_pipeline(
+    state: IncidentState,
+    agent: Optional[BaseAgent] = None,
+) -> IncidentState:
+    """Execute an ADK Agent or SequentialAgent (`root_orchestrator` or `planner_agent`) via ADK `Runner` and return hydrated `IncidentState`."""
+    runner = _RUNNERS.get(agent.name, default_runner) if agent is not None else default_runner
 
-    async def generate_commands(
-        self,
-        strategy_text: Optional[str] = None,
-        *,
-        incident_query: Optional[str] = None,
-        planner_output: Optional[str] = None,
-        retrieved_docs: Optional[List[Dict[str, Any]]] = None,
-    ) -> TroubleshootingPlan:
-        """Translate abstract troubleshooting strategy into structured, safety-verified kubectl commands asynchronously."""
-        if strategy_text is None:
-            docs_context = ""
-            if retrieved_docs:
-                docs_context = "\n\nRetrieved Kubernetes Documentation Context (via mcp-k8s-docs-server):\n" + "\n".join(
-                    f"- [{d.get('breadcrumb', '')}] ({d.get('url', '')}): {d.get('snippet', '')[:300]}"
-                    for d in retrieved_docs
-                )
-            strategy_text = f"Incident: {incident_query or ''}\nPlanner Checklist:\n{planner_output or ''}{docs_context}"
+    base_session_id = state.incident_id or f"inc-{uuid.uuid4().hex[:8]}"
+    user_id = "sre-agent"
+    initial_state = state.model_dump()
 
-        config = types.GenerateContentConfig(
-            system_instruction=self.adk_agent.instruction,
-            response_mime_type="application/json",
-            response_schema=TroubleshootingPlan,
+    message = types.Content(
+        role="user",
+        parts=[types.Part.from_text(text=state.raw_logs)],
+    )
+
+    session_id = base_session_id
+    prompt_tokens = 0
+    cached_tokens = 0
+    completion_tokens = 0
+    t_start = time.perf_counter()
+    t_planner_end = None
+    t_executor_end = None
+
+    for attempt in range(3):
+        session_id = base_session_id if attempt == 0 else f"{base_session_id}-retry{attempt}"
+        await session_service.create_session(
+            app_name=APP_NAME,
+            user_id=user_id,
+            session_id=session_id,
+            state=dict(initial_state),
         )
-        self._last_usage_tokens = {"prompt_tokens": 0, "cached_tokens": 0, "completion_tokens": 0}
+        try:
+            async for event in runner.run_async(
+                user_id=user_id,
+                session_id=session_id,
+                new_message=message,
+            ):
+                now = time.perf_counter()
+                if event.author == "planner_agent":
+                    t_planner_end = now
+                elif event.author == "executor_agent":
+                    t_executor_end = now
 
-        response = await self.client.aio.models.generate_content(
-            model=self.model_name,
-            contents=strategy_text,
-            config=config,
-        )
-        self._last_usage_tokens = _extract_usage_tokens(response)
+                tokens = _extract_usage_tokens(event)
+                prompt_tokens += tokens["prompt_tokens"]
+                cached_tokens += tokens["cached_tokens"]
+                completion_tokens += tokens["completion_tokens"]
+            break
+        except ValueError as err:
+            if attempt == 2:
+                raise err
 
-        if hasattr(response, "parsed") and isinstance(response.parsed, TroubleshootingPlan):
-            plan: TroubleshootingPlan = response.parsed
-        elif hasattr(response, "parsed") and isinstance(response.parsed, dict):
-            plan = TroubleshootingPlan.model_validate(response.parsed)
-        elif hasattr(response, "text") and response.text:
-            plan = TroubleshootingPlan.model_validate_json(response.text)
-        else:
-            raise ValueError(f"Failed to parse TroubleshootingPlan: {response}")
+    updated_session = await session_service.get_session(
+        app_name=APP_NAME,
+        user_id=user_id,
+        session_id=session_id,
+    )
+    session_state_dict = dict(updated_session.state) if updated_session else initial_state
 
-        # Post-process every command step through the deterministic Safety Guardian
-        for i, step in enumerate(plan.steps):
-            plan.steps[i] = SafetyGuardian.evaluate_command(step)
+    meta = dict(session_state_dict.get("metadata") or {})
+    if t_planner_end is not None:
+        meta["planner_latency_ms"] = round((t_planner_end - t_start) * 1000.0, 2)
+    if t_executor_end is not None:
+        exec_start = t_planner_end if t_planner_end is not None else t_start
+        meta["executor_latency_ms"] = round((t_executor_end - exec_start) * 1000.0, 2)
+    if prompt_tokens > 0 or completion_tokens > 0:
+        meta["prompt_tokens"] = meta.get("prompt_tokens", 0) + prompt_tokens
+        meta["cached_tokens"] = meta.get("cached_tokens", 0) + cached_tokens
+        meta["completion_tokens"] = meta.get("completion_tokens", 0) + completion_tokens
+    session_state_dict["metadata"] = meta
 
-        return plan
-
-
-    async def execute(self, state: IncidentState) -> IncidentState:
-        """Translate checklist steps into structured KubectlCommand objects on IncidentState."""
-        plan = await self.generate_commands(
-            incident_query=state.raw_logs,
-            planner_output="\n".join(state.planner_checklist) if state.planner_checklist else state.raw_logs,
-            retrieved_docs=state.retrieved_docs,
-        )
-
-        if self._last_usage_tokens["prompt_tokens"] > 0 or self._last_usage_tokens["completion_tokens"] > 0:
-            state.metadata["prompt_tokens"] = state.metadata.get("prompt_tokens", 0) + self._last_usage_tokens["prompt_tokens"]
-            state.metadata["cached_tokens"] = state.metadata.get("cached_tokens", 0) + self._last_usage_tokens["cached_tokens"]
-            state.metadata["completion_tokens"] = state.metadata.get("completion_tokens", 0) + self._last_usage_tokens["completion_tokens"]
-
-        state.raw_command = [cmd.model_copy() for cmd in plan.steps]
-        state.final_validated_command = plan.steps
-        if plan.problem_summary:
-            state.metadata["problem_summary"] = plan.problem_summary
-        if plan.error_type:
-            state.metadata["error_type"] = plan.error_type
-        if not state.source_citations and plan.source_citations:
-            state.source_citations = plan.source_citations
-        state.status = "EXECUTED"
-        return state
-
-
-
-class RootOrchestrator:
-    """First-Class Deterministic ADK SequentialAgent Root Orchestrator coordinating PlannerAgent and ExecutorAgent."""
-
-    def __init__(
-        self,
-        planner: Optional[PlannerAgent] = None,
-        executor: Optional[ExecutorAgent] = None,
-        model_name: str = "gemini-2.5-pro",
-        adk_agent: Optional[SequentialAgent] = None,
-    ):
-        self.model_name = model_name
-        self.planner = planner or PlannerAgent(model_name=model_name)
-        self.executor = executor or ExecutorAgent(model_name=model_name)
-        self.adk_agent: SequentialAgent = adk_agent or create_root_orchestrator(
-            model_name=model_name,
-            planner=getattr(self.planner, "adk_agent", None),
-            executor=getattr(self.executor, "adk_agent", None),
-        )
-
-    @staticmethod
-    def _record_status(state: IncidentState, new_status: str) -> None:
-        """Set state.status and append to state.metadata['status_history'] without duplicate adjacent entries."""
-        state.status = new_status
-        history = state.metadata.setdefault("status_history", [])
-        if not history or history[-1] != new_status:
-            history.append(new_status)
-
-    async def orchestrate(self, state: IncidentState) -> IncidentState:
-        """Execute the multi-agent diagnosis pipeline (`PlannerAgent` -> `ExecutorAgent`) and manage state transitions."""
-        state.metadata.setdefault("status_history", [])
-        state.metadata["execution_mode"] = "async"
-
-        # Phase 1: Delegate to PlannerAgent for root-cause analysis and MCP documentation retrieval
-        t0 = time.perf_counter()
-        with tracer.start_as_current_span("planner_agent_phase") as planner_span:
-            planner_span.set_attribute("incident.id", state.incident_id)
-            state = await self.planner.plan(state)
-            planner_ms = round((time.perf_counter() - t0) * 1000.0, 2)
-            planner_span.set_attribute("agent.latency_ms", planner_ms)
-            state.metadata["planner_latency_ms"] = planner_ms
-        self._record_status(state, "PLANNING_COMPLETED")
-
-        # Phase 2: Delegate to ExecutorAgent for structured kubectl synthesis and SafetyGuardian validation
-        t1 = time.perf_counter()
-        with tracer.start_as_current_span("executor_agent_phase") as executor_span:
-            executor_span.set_attribute("incident.id", state.incident_id)
-            state = await self.executor.execute(state)
-            executor_ms = round((time.perf_counter() - t1) * 1000.0, 2)
-            executor_span.set_attribute("agent.latency_ms", executor_ms)
-            state.metadata["executor_latency_ms"] = executor_ms
-        self._record_status(state, "EXECUTED")
-
-        # Phase 3: Finalize pipeline state
-        self._record_status(state, "COMPLETED")
-        return state
-
+    return IncidentState.model_validate(session_state_dict)

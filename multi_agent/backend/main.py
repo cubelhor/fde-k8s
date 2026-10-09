@@ -17,12 +17,13 @@ from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 
 # Ensure backend directory is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from google.adk.agents import SequentialAgent
 from src.models import (
     DiagnoseRequest,
     DiagnoseResponse,
@@ -31,7 +32,16 @@ from src.models import (
     FeedbackRequest,
     FeedbackResponse,
 )
-from src.agents import PlannerAgent, ExecutorAgent, RootOrchestrator
+from src.config import PROJECT_ID, DATASTORE_ID, CORS_ORIGINS
+from src.agents import (
+    DEFAULT_MODEL,
+    planner_agent,
+    executor_agent,
+    root_orchestrator,
+    run_agent_pipeline,
+)
+from src.mcp_server import mcp_server, mcp_search_kubernetes_documentation
+from src.telemetry import record_token_metrics_to_bigquery, record_feedback_to_firestore
 
 # --- OpenTelemetry Setup ---
 from opentelemetry import trace
@@ -47,7 +57,6 @@ class StructuredJsonFormatter(logging.Formatter):
         span_ctx = trace.get_current_span().get_span_context()
         trace_id = f"{span_ctx.trace_id:032x}" if span_ctx and span_ctx.is_valid else None
         span_id = f"{span_ctx.span_id:016x}" if span_ctx and span_ctx.is_valid else None
-        project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
 
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -58,7 +67,7 @@ class StructuredJsonFormatter(logging.Formatter):
             "span_id": span_id,
         }
         if trace_id:
-            log_entry["logging.googleapis.com/trace"] = f"projects/{project_id}/traces/{trace_id}"
+            log_entry["logging.googleapis.com/trace"] = f"projects/{PROJECT_ID}/traces/{trace_id}"
             log_entry["logging.googleapis.com/spanId"] = span_id
 
         audit_payload = getattr(record, "audit_payload", None)
@@ -77,7 +86,12 @@ _json_handler.setFormatter(StructuredJsonFormatter())
 logging.basicConfig(level=logging.INFO, handlers=[_json_handler], force=True)
 logger = logging.getLogger("k8s_copilot_api")
 
-from src.auth import get_identity_metadata, get_secret
+from src.auth import (
+    get_identity_metadata,
+    get_secret,
+    verify_end_user_identity,
+    verify_agent_gateway_token,
+)
 
 # Configure Tracer Provider (attaches GCP Cloud Trace exporter on Cloud Run or when ENABLE_CLOUD_TRACE=true)
 tracer_provider = TracerProvider()
@@ -107,46 +121,17 @@ tracer = trace.get_tracer("k8s_copilot_tracer")
 # Application Lifespan & Dependency Providers
 # ============================================================================
 
-# Global Agent Instances
-_planner_agent: Optional[PlannerAgent] = None
-_executor_agent: Optional[ExecutorAgent] = None
-_root_orchestrator: Optional[RootOrchestrator] = None
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager to initialize agent singletons on startup."""
-    global _planner_agent, _executor_agent, _root_orchestrator
-    logger.info("Initializing Kubernetes Troubleshooting Copilot Agents...")
-    _planner_agent = PlannerAgent(model_name="gemini-2.5-pro")
-    _executor_agent = ExecutorAgent(model_name="gemini-2.5-pro")
-    _root_orchestrator = RootOrchestrator(planner=_planner_agent, executor=_executor_agent)
+    """Lifespan context manager for the FastAPI application."""
+    logger.info("Initializing Kubernetes Troubleshooting Copilot ADK Agents...")
     yield
     logger.info("Shutting down Kubernetes Troubleshooting Copilot Backend.")
 
 
-def get_planner_agent() -> PlannerAgent:
-    """Dependency provider for the PlannerAgent."""
-    global _planner_agent
-    if _planner_agent is None:
-        _planner_agent = PlannerAgent(model_name="gemini-2.5-pro")
-    return _planner_agent
-
-
-def get_executor_agent() -> ExecutorAgent:
-    """Dependency provider for the ExecutorAgent."""
-    global _executor_agent
-    if _executor_agent is None:
-        _executor_agent = ExecutorAgent(model_name="gemini-2.5-pro")
-    return _executor_agent
-
-
-def get_root_orchestrator(planner: PlannerAgent, executor: ExecutorAgent) -> RootOrchestrator:
-    """Return singleton RootOrchestrator when default agents are used, or wrap overridden test dependencies."""
-    global _root_orchestrator, _planner_agent, _executor_agent
-    if _root_orchestrator is not None and planner is _planner_agent and executor is _executor_agent:
-        return _root_orchestrator
-    return RootOrchestrator(planner=planner, executor=executor)
+def get_root_orchestrator() -> SequentialAgent:
+    """Dependency provider for the native ADK `root_orchestrator` (`SequentialAgent`)."""
+    return root_orchestrator
 
 
 # ============================================================================
@@ -163,7 +148,7 @@ app = FastAPI(
 # Enable CORS for Frontend Access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -174,8 +159,7 @@ FastAPIInstrumentor.instrument_app(app)
 
 # Mount the MCP Server (`mcp-k8s-docs-server`) SSE transport at /mcp
 try:
-    from src.mcp_server import mcp_server as _k8s_mcp_server
-    app.mount("/mcp", _k8s_mcp_server.sse_app())
+    app.mount("/mcp", mcp_server.sse_app())
 except Exception as mcp_mount_err:
     logger.warning(f"Could not mount MCP SSE transport: {mcp_mount_err}")
 
@@ -192,8 +176,9 @@ async def root():
         "status": "online",
         "version": "1.0.0",
         "agents": {
-            "planner": "PlannerAgent (ADK + Vertex AI Search)",
-            "executor": "ExecutorAgent (Gemini 2.5 Pro Structured Outputs)",
+            "orchestrator": root_orchestrator.name,
+            "planner": planner_agent.name,
+            "executor": executor_agent.name,
             "guardian": "SafetyGuardian (Deterministic Risk Matrix)"
         }
     }
@@ -214,25 +199,27 @@ async def health_check():
 )
 async def diagnose_incident(
     request: DiagnoseRequest,
-    planner: PlannerAgent = Depends(get_planner_agent),
-    executor: ExecutorAgent = Depends(get_executor_agent),
+    orchestrator: SequentialAgent = Depends(get_root_orchestrator),
+    authorization: Optional[str] = Header(default=None),
+    x_goog_iap_jwt_assertion: Optional[str] = Header(default=None),
 ) -> DiagnoseResponse:
-    """End-to-End SRE Incident Diagnosis Pipeline.
-    
-    Workflow:
-    1. Initialize IncidentState with raw crash logs and cluster context.
-    2. Phase 1 (Planning): PlannerAgent uses ADK Runner and Vertex AI Search to research and construct diagnostic checklist.
-    3. Phase 2 (Execution): ExecutorAgent translates checklist into structured KubectlCommand steps.
-    4. Phase 3 (Safety Interception): SafetyGuardian inspects every command against LOW/MEDIUM/HIGH risk matrix.
-    5. Returns finalized TroubleshootingPlan and full IncidentState trajectory.
-    """
+    """End-to-End SRE Incident Diagnosis Pipeline using native ADK `root_orchestrator` (`SequentialAgent`)."""
+    try:
+        user_ctx = verify_end_user_identity(
+            authorization=authorization,
+            iap_jwt=x_goog_iap_jwt_assertion,
+        )
+    except PermissionError as auth_err:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(auth_err))
+
     incident_id = request.incident_id or f"inc-{uuid.uuid4().hex[:8]}"
     start_time = time.perf_counter()
-    logger.info(f"Starting diagnosis pipeline for incident: {incident_id}")
+    logger.info(f"Starting diagnosis pipeline for incident: {incident_id} (user={user_ctx.get('email')})")
 
     with tracer.start_as_current_span("diagnose_incident") as span:
         span.set_attribute("incident.id", incident_id)
         span.set_attribute("cluster.context", request.cluster_context or "unknown")
+        span.set_attribute("end_user.email", user_ctx.get("email", "unknown"))
 
         # Step 1: Initialize State
         state = IncidentState(
@@ -240,63 +227,43 @@ async def diagnose_incident(
             raw_logs=request.raw_logs,
             cluster_context=request.cluster_context,
             status="INITIALIZED",
+            metadata={"user_principal": user_ctx.get("email"), "auth_source": user_ctx.get("source")},
         )
 
         try:
-            # Step 2: Delegate multi-agent execution to RootOrchestrator (SequentialAgent: PlannerAgent -> ExecutorAgent)
+            # Step 2: Execute native ADK SequentialAgent (`planner_agent` -> `executor_agent`) via ADK Runner
             with tracer.start_as_current_span("root_orchestrator_phase"):
-                logger.info(f"[{incident_id}] Running RootOrchestrator (SequentialAgent)...")
-                orchestrator = get_root_orchestrator(planner=planner, executor=executor)
-                state = await orchestrator.orchestrate(state)
-                logger.info(
-                    f"[{incident_id}] RootOrchestrator completed (status={state.status}, "
-                    f"checklist={len(state.planner_checklist or [])}, "
-                    f"validated_commands={len(state.final_validated_command or [])})."
-                )
+                logger.info(f"[{incident_id}] Running ADK root_orchestrator (SequentialAgent)...")
+                state = await run_agent_pipeline(state, agent=orchestrator)
 
-            # Step 3: Construct Final Troubleshooting Plan from MCP / Vertex AI Search & Executor output
-            plan_summary = state.metadata.get("problem_summary") or (
-                f"Incident {incident_id} Diagnosis: "
-                f"{state.raw_logs[:120]}..." if len(state.raw_logs) > 120 else state.raw_logs
+            # Step 3: Finalize Troubleshooting Plan & Error Classification
+            plan = state.troubleshooting_plan or TroubleshootingPlan(
+                problem_summary=state.raw_logs[:120],
+                steps=[],
+                source_citations=state.source_citations or [],
             )
-
-            citations = state.source_citations if state.source_citations else [
-                "https://kubernetes.io/docs/tasks/debug/",
-                "https://kubernetes.io/docs/reference/kubectl/",
-                "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
-            ]
-
-            from src.telemetry import record_token_metrics_to_bigquery, classify_cluster_error_type
-            error_type = state.metadata.get("error_type") or classify_cluster_error_type(state.raw_logs)
+            error_type = plan.error_type or "GeneralClusterAnomaly"
             state.metadata["error_type"] = error_type
-
-            plan = TroubleshootingPlan(
-                problem_summary=plan_summary,
-                error_type=error_type,
-                steps=state.final_validated_command,
-                source_citations=citations
+            logger.info(
+                f"[{incident_id}] root_orchestrator completed (status={state.status}, "
+                f"checklist={len(state.planner_checklist or [])}, "
+                f"validated_commands={len(plan.steps)})."
             )
 
             # Step 4: Emit token, latency, & error_type metrics via stdout JSON for the Cloud Logging -> BigQuery Sink
             elapsed_latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
             state.metadata.setdefault("latency_ms", elapsed_latency_ms)
-            est_prompt_tokens = max(1, len(state.raw_logs or "") // 4)
-            est_completion_tokens = max(
-                1,
-                sum(len(s.command) + len(s.explanation) for s in (state.final_validated_command or [])) // 4,
-            )
             telemetry_result = record_token_metrics_to_bigquery(
                 incident_id=incident_id,
-                model_name=getattr(planner, "model_name", "gemini-2.5-pro"),
-                prompt_tokens=state.metadata.get("prompt_tokens", est_prompt_tokens),
+                model_name=DEFAULT_MODEL,
+                prompt_tokens=state.metadata.get("prompt_tokens", 0),
                 cached_tokens=state.metadata.get("cached_tokens", 0),
-                completion_tokens=state.metadata.get("completion_tokens", est_completion_tokens),
+                completion_tokens=state.metadata.get("completion_tokens", 0),
                 latency_ms=state.metadata.get("latency_ms", elapsed_latency_ms),
                 planner_latency_ms=state.metadata.get("planner_latency_ms", 0.0),
                 executor_latency_ms=state.metadata.get("executor_latency_ms", 0.0),
-                execution_mode=state.metadata.get("execution_mode", "async"),
                 checklist_steps=len(state.planner_checklist or []),
-                validated_commands=len(state.final_validated_command or []),
+                validated_commands=len(plan.steps),
                 error_type=error_type,
                 cluster_context=state.cluster_context,
             )
@@ -321,7 +288,7 @@ async def diagnose_incident(
                             }
                             for s in (plan.steps or [])
                         ],
-                        "source_citations": citations,
+                        "source_citations": plan.source_citations,
                     }
                 },
             )
@@ -347,7 +314,6 @@ async def diagnose_incident(
 @app.get("/api/v1/mcp/status", tags=["MCP Server"])
 async def mcp_server_status():
     """Return status, SPIFFE identity metadata, and registered tools of the mcp-k8s-docs-server."""
-    from src.mcp_server import mcp_server, DATASTORE_ID
     tools = await mcp_server.list_tools()
     return {
         "server_name": mcp_server.name,
@@ -363,9 +329,20 @@ async def mcp_server_status():
 
 
 @app.get("/api/v1/mcp/search", tags=["MCP Server"])
-async def mcp_server_search(query: str, top_k: int = 3):
-    """Query the mcp-k8s-docs-server directly to inspect retrieved Vertex AI Search chunks."""
-    from src.mcp_server import mcp_search_kubernetes_documentation
+async def mcp_server_search(
+    query: str,
+    top_k: int = 3,
+    authorization: Optional[str] = Header(default=None),
+    x_agent_spiffe_id: Optional[str] = Header(default=None),
+):
+    """Query the mcp-k8s-docs-server directly (enforces Agent Gateway caller verification)."""
+    try:
+        verify_agent_gateway_token(
+            authorization=authorization,
+            spiffe_id_header=x_agent_spiffe_id,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc))
     return await mcp_search_kubernetes_documentation(query=query, top_k=top_k)
 
 
@@ -383,7 +360,6 @@ async def submit_feedback(feedback: FeedbackRequest) -> FeedbackResponse:
         f"rating={feedback.rating}, copied_command={bool(feedback.copied_command)}, user={feedback.user_id}"
     )
 
-    from src.telemetry import record_feedback_to_firestore
     sink_res = await record_feedback_to_firestore(
         incident_id=feedback.incident_id,
         rating=feedback.rating,

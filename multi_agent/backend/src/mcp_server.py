@@ -8,9 +8,7 @@ Implements the Model Context Protocol (MCP) server specified in `design.md` (§3
   `SearchServiceAsyncClient` gRPC singleton.
 """
 
-import os
 import asyncio
-import logging
 import argparse
 from typing import Dict, Any, Optional
 
@@ -18,12 +16,7 @@ from google.cloud import discoveryengine_v1beta
 from mcp.server.fastmcp import FastMCP
 
 from src.auth import get_gcp_credentials
-
-logger = logging.getLogger("mcp_k8s_docs_server")
-
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
-LOCATION = os.getenv("DISCOVERY_ENGINE_LOCATION", "global")
-DATASTORE_ID = os.getenv("DISCOVERY_ENGINE_DATASTORE_ID", "k8s-custom-chunks-store")
+from src.config import PROJECT_ID, DISCOVERY_ENGINE_LOCATION as LOCATION, DATASTORE_ID
 
 # Pre-formatted Vertex AI Search serving config path
 SERVING_CONFIG_PATH = (
@@ -44,102 +37,27 @@ mcp_server = FastMCP(
 # Lazy-Loaded gRPC Client Singleton (Zero Per-Request Churn)
 # ============================================================================
 
-_gcp_credentials = None
 _search_client: Optional[discoveryengine_v1beta.SearchServiceAsyncClient] = None
-_search_client_cls = None
 _search_client_loop = None
-
-
-def _get_gcp_credentials():
-    """Returns cached SPIFFE Workload Identity / ADC credentials via src.auth."""
-    global _gcp_credentials
-    if _gcp_credentials is None:
-        _gcp_credentials, _ = get_gcp_credentials(project_id=PROJECT_ID)
-    return _gcp_credentials
 
 
 def _get_search_client() -> discoveryengine_v1beta.SearchServiceAsyncClient:
     """Returns a persistent SearchServiceAsyncClient singleton per active event loop to reuse gRPC channels across queries."""
-    global _search_client, _search_client_cls, _search_client_loop
-    current_cls = discoveryengine_v1beta.SearchServiceAsyncClient
+    global _search_client, _search_client_loop
     try:
         current_loop = asyncio.get_running_loop()
     except RuntimeError:
         current_loop = None
-    if (
-        _search_client is None
-        or _search_client_cls is not current_cls
-        or _search_client_loop is not current_loop
-    ):
-        creds = _get_gcp_credentials()
-        _search_client = current_cls(credentials=creds)
-        _search_client_cls = current_cls
+    if _search_client is None or _search_client_loop is not current_loop:
+        creds, _ = get_gcp_credentials(project_id=PROJECT_ID)
+        _search_client = discoveryengine_v1beta.SearchServiceAsyncClient(credentials=creds)
         _search_client_loop = current_loop
     return _search_client
 
 
 # ============================================================================
-# Core Vertex AI Search Operation & Registered FastMCP Tool
+# Registered FastMCP Tool & Vertex AI Search Query
 # ============================================================================
-
-async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
-    """Queries Vertex AI Search (`k8s-custom-chunks-store`) via SearchServiceAsyncClient."""
-    client = _get_search_client()
-
-    req = discoveryengine_v1beta.SearchRequest(
-        serving_config=SERVING_CONFIG_PATH,
-        query=query,
-        page_size=top_k,
-        content_search_spec=discoveryengine_v1beta.SearchRequest.ContentSearchSpec(
-            snippet_spec=discoveryengine_v1beta.SearchRequest.ContentSearchSpec.SnippetSpec(
-                return_snippet=True
-            )
-        ),
-    )
-
-    response = await client.search(request=req, timeout=4.0)
-    results = []
-
-    async for r in response:
-        struct = dict(r.document.struct_data) if getattr(r.document, "struct_data", None) else {}
-        derived = dict(r.document.derived_struct_data) if getattr(r.document, "derived_struct_data", None) else {}
-
-        chunk_id = struct.get("id") or struct.get("_id") or r.document.id
-        breadcrumb = struct.get("breadcrumb") or struct.get("title") or derived.get("title") or chunk_id
-        doc_path = (
-            struct.get("url")
-            or struct.get("uri")
-            or struct.get("doc_path")
-            or derived.get("link")
-            or "https://kubernetes.io/docs/reference/"
-        )
-        content = struct.get("content", "")
-        if not content:
-            snippets = [s.get("snippet", "") for s in derived.get("snippets", []) if isinstance(s, dict)]
-            content = " ".join(snippets) if snippets else str(derived.get("extractive_answers", ""))
-
-        results.append({
-            "chunk_id": chunk_id,
-            "title": breadcrumb,
-            "breadcrumb": breadcrumb,
-            "url": doc_path,
-            "doc_path": doc_path,
-            "content": content,
-            "snippet": content,
-            "has_code_block": bool(struct.get("has_code_block", False)),
-            "source_engine": "vertex_ai_search",
-        })
-        if len(results) >= top_k:
-            break
-
-    return {
-        "status": "success",
-        "server": "mcp-k8s-docs-server",
-        "datastore": DATASTORE_ID,
-        "query": query,
-        "results": results,
-    }
-
 
 @mcp_server.tool(
     name="search_kubernetes_documentation",
@@ -150,8 +68,49 @@ async def query_vertex_ai_search(query: str, top_k: int = 3) -> Dict[str, Any]:
     ),
 )
 async def mcp_search_kubernetes_documentation(query: str, top_k: int = 3) -> Dict[str, Any]:
-    """MCP Tool endpoint for searching Kubernetes documentation."""
-    return await query_vertex_ai_search(query=query, top_k=top_k)
+    """Queries Vertex AI Search (`k8s-custom-chunks-store`) via SearchServiceAsyncClient."""
+    client = _get_search_client()
+
+    req = discoveryengine_v1beta.SearchRequest(
+        serving_config=SERVING_CONFIG_PATH,
+        query=query,
+        page_size=top_k,
+        query_expansion_spec=discoveryengine_v1beta.SearchRequest.QueryExpansionSpec(
+            condition=discoveryengine_v1beta.SearchRequest.QueryExpansionSpec.Condition.AUTO,
+        ),
+        spell_correction_spec=discoveryengine_v1beta.SearchRequest.SpellCorrectionSpec(
+            mode=discoveryengine_v1beta.SearchRequest.SpellCorrectionSpec.Mode.AUTO,
+        ),
+    )
+
+    response = await client.search(request=req, timeout=4.0)
+    results = []
+
+    async for r in response:
+        struct = dict(r.document.struct_data) if getattr(r.document, "struct_data", None) else {}
+
+        chunk_id = struct.get("_id") or struct.get("id") or r.document.id
+        breadcrumb = struct.get("breadcrumb") or struct.get("title") or chunk_id
+        url = struct.get("url") or "https://kubernetes.io/docs/reference/"
+        content = struct.get("content", "")
+
+        results.append({
+            "chunk_id": chunk_id,
+            "breadcrumb": breadcrumb,
+            "url": url,
+            "content": content,
+            "has_code_block": bool(struct.get("has_code_block", False)),
+        })
+        if len(results) >= top_k:
+            break
+
+    return {
+        "status": "success",
+        "server": mcp_server.name,
+        "datastore": DATASTORE_ID,
+        "query": query,
+        "results": results,
+    }
 
 
 if __name__ == "__main__":

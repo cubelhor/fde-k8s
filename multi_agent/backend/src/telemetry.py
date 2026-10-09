@@ -13,13 +13,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 from src.auth import get_gcp_credentials
+from src.config import PROJECT_ID, BQ_DATASET, BQ_TABLE, FIRESTORE_COLLECTION
 
 logger = logging.getLogger("k8s_copilot_telemetry")
-
-PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "fde-k8s-sandbox-dev-505119")
-BQ_DATASET = os.getenv("BQ_TELEMETRY_DATASET", "k8s_copilot_telemetry")
-BQ_TABLE = os.getenv("BQ_TELEMETRY_TABLE", "token_metrics")
-FIRESTORE_COLLECTION = os.getenv("FIRESTORE_FEEDBACK_COLLECTION", "copilot_feedback")
 
 # Module-level singleton for native async Firestore client
 _firestore_async_client: Optional[Any] = None
@@ -44,34 +40,6 @@ def _get_firestore_async_client() -> Any:
     return _firestore_async_client
 
 
-def classify_cluster_error_type(raw_logs: str) -> str:
-    """Classify raw Kubernetes crash logs into a standardized cluster anomaly category for session & BI telemetry."""
-    text = (raw_logs or "").lower()
-    if "oomkilled" in text or "exit code 137" in text or "out of memory" in text:
-        return "OOMKilled"
-    if "imagepullbackoff" in text or "errimagepull" in text:
-        return "ImagePullBackOff"
-    if "createcontainerconfigerror" in text or ("secret" in text and "not found" in text) or ("configmap" in text and "not found" in text):
-        return "CreateContainerConfigError"
-    if "crashloopbackoff" in text or "back-off restarting failed container" in text:
-        return "CrashLoopBackOff"
-    if "nodenotready" in text or "diskpressure" in text or "memorypressure" in text or "pidpressure" in text or "pleg" in text:
-        return "NodeNotReady / ResourcePressure"
-    if "coredns" in text or "nxdomain" in text or "servfail" in text or "dns" in text:
-        return "DNS / CoreDNS"
-    if "forbidden" in text or "rbac" in text or "unauthorized" in text or "serviceaccount" in text:
-        return "RBAC / Forbidden"
-    if "persistentvolume" in text or "pvc" in text or "failedmount" in text or "failedattachvolume" in text or "storageclass" in text:
-        return "PVC / Storage"
-    if "liveness probe" in text or "readiness probe" in text or "startup probe" in text or "unhealthy" in text:
-        return "ProbeFailure"
-    if "networkpolicy" in text or "ingress" in text or "connection refused" in text or "i/o timeout" in text:
-        return "Network / Ingress"
-    if "failedscheduling" in text or "insufficient cpu" in text or "insufficient memory" in text or "taint" in text:
-        return "Scheduling / Capacity"
-    return "GeneralClusterAnomaly"
-
-
 def record_token_metrics_to_bigquery(
     incident_id: str,
     model_name: str,
@@ -83,7 +51,6 @@ def record_token_metrics_to_bigquery(
     latency_ms: float = 0.0,
     planner_latency_ms: float = 0.0,
     executor_latency_ms: float = 0.0,
-    execution_mode: str = "async",
     error_type: Optional[str] = None,
     cluster_context: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -113,7 +80,6 @@ def record_token_metrics_to_bigquery(
         "latency_ms": round(float(latency_ms), 2),
         "planner_latency_ms": round(float(planner_latency_ms), 2),
         "executor_latency_ms": round(float(executor_latency_ms), 2),
-        "execution_mode": execution_mode,
         "checklist_steps": checklist_steps,
         "validated_commands": validated_commands,
         "error_type": error_type or "GeneralClusterAnomaly",
@@ -147,31 +113,13 @@ async def record_feedback_to_firestore(
     Uses `incident_id` as the Firestore document ID with `merge=True` so rating changes
     overwrite `rating` in-place while `copied_commands` appends via `ArrayUnion`.
     """
-    now_iso = datetime.now(timezone.utc).isoformat()
-    baseline_mttr_minutes = 30.0
-    observed_minutes = round(float(session_duration_sec) / 60.0, 2) if session_duration_sec is not None else 3.0
-
     doc_data: Dict[str, Any] = {
         "incident_id": incident_id,
         "user_id": user_id or "anonymous-sre",
-        "updated_at": now_iso,
-        "baseline_mttr_minutes": baseline_mttr_minutes,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     if rating is not None:
         doc_data["rating"] = rating
-        if rating == "up":
-            simulated_res = min(baseline_mttr_minutes, max(1.0, observed_minutes))
-            doc_data["simulated_resolution_minutes"] = round(simulated_res, 2)
-            doc_data["simulated_mttr_saved_minutes"] = round(baseline_mttr_minutes - simulated_res, 2)
-        else:
-            doc_data["simulated_resolution_minutes"] = baseline_mttr_minutes
-            doc_data["simulated_mttr_saved_minutes"] = 0.0
-    elif copied_command:
-        # Command adoption without explicit thumbs-down indicates partial-to-full triage acceleration
-        simulated_res = min(baseline_mttr_minutes, max(2.0, observed_minutes))
-        doc_data["simulated_resolution_minutes"] = round(simulated_res, 2)
-        doc_data["simulated_mttr_saved_minutes"] = round((baseline_mttr_minutes - simulated_res) * 0.75, 2)
-
     if comment is not None:
         doc_data["comment"] = comment
     if session_duration_sec is not None:

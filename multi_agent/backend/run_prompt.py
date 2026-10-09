@@ -5,7 +5,6 @@ Usage:
 """
 
 import sys
-import json
 import asyncio
 import argparse
 from pathlib import Path
@@ -16,7 +15,7 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from src.models import IncidentState
-from src.agents import RootOrchestrator
+from src.agents import root_orchestrator, run_agent_pipeline
 
 
 async def run_end_user_prompt(prompt: str, cluster_context: str = "gke-prod-eu / namespace: prod") -> None:
@@ -31,12 +30,9 @@ async def run_end_user_prompt(prompt: str, cluster_context: str = "gke-prod-eu /
         cluster_context=cluster_context,
     )
 
-    orchestrator = RootOrchestrator()
-    final_state = await orchestrator.orchestrate(state)
+    final_state = await run_agent_pipeline(state, agent=root_orchestrator)
 
-    print("\n[1] ORCHESTRATOR STATUS TRANSITIONS:")
-    print("    " + " -> ".join(final_state.metadata.get("status_history", [])))
-    print(f"    Final Status: {final_state.status}")
+    print(f"\n[1] ORCHESTRATOR FINAL STATUS: {final_state.status}")
 
     print("\n[2] RETRIEVED KUBERNETES DOC CITATIONS (via mcp-k8s-docs-server):")
     for idx, citation in enumerate(final_state.source_citations or [], 1):
@@ -47,7 +43,8 @@ async def run_end_user_prompt(prompt: str, cluster_context: str = "gke-prod-eu /
         print(f"    {line}")
 
     print("\n[4] EXECUTOR AGENT + SAFETY GUARDIAN VALIDATED KUBECTL COMMANDS:")
-    for step in final_state.final_validated_command or []:
+    steps = final_state.troubleshooting_plan.steps if final_state.troubleshooting_plan else []
+    for step in steps:
         print(f"    Step {step.step_number} [{step.danger_level}] - {step.title}")
         print(f"      Command     : {step.command}")
         print(f"      Explanation : {step.explanation}")
